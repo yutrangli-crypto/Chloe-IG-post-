@@ -418,6 +418,37 @@
             throw new Error('不支援的檔案格式，請上傳 PDF 或圖片檔。');
         }
 
+        async function fetchGeminiWithFallback(apiKey, payload) {
+            // 備援模型列表：優先試用 gemini-1.5-flash，若繁忙自動轉接 gemini-1.5-pro
+            const models = ['gemini-1.5-flash', 'gemini-1.5-pro'];
+            let lastError = null;
+
+            for (const model of models) {
+                try {
+                    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (response.ok) {
+                        return await response.json();
+                    }
+
+                    const errData = await response.json().catch(() => ({}));
+                    lastError = errData.error?.message || `狀態碼: ${response.status}`;
+                    
+                    // 如果不是 503/429 流量問題，代表可能是 Key 或 Request 有別的問題，直接拋出
+                    if (response.status !== 503 && response.status !== 429 && !lastError.includes('high demand')) {
+                        throw new Error(lastError);
+                    }
+                } catch (e) {
+                    lastError = e.message;
+                }
+            }
+            throw new Error(lastError || '目前伺服器流量較大，請稍後重試。');
+        }
+
         async function executeGeminiParse() {
             const apiKey = document.getElementById('apiKeyInput').value.trim() || localStorage.getItem('gemini_key');
             if (!apiKey) {
@@ -452,26 +483,16 @@
 ]
 星期格式請填寫英文簡寫: Mon, Tue, Wed, Thu, Fri, Sat, Sun。`;
 
-                // 更新為官方推薦的最新模型 gemini-3.8-flash
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{
-                            parts: [
-                                { text: promptText },
-                                { inline_data: { mime_type: 'image/jpeg', data: base64Data } }
-                            ]
-                        }]
-                    })
-                });
+                const payload = {
+                    contents: [{
+                        parts: [
+                            { text: promptText },
+                            { inline_data: { mime_type: 'image/jpeg', data: base64Data } }
+                        ]
+                    }]
+                };
 
-                if (!response.ok) {
-                    const errDetail = await response.json().catch(() => ({}));
-                    throw new Error(errDetail.error?.message || `狀態碼: ${response.status}`);
-                }
-
-                const resData = await response.json();
+                const resData = await fetchGeminiWithFallback(apiKey, payload);
                 let rawText = resData.candidates?.[0]?.content?.parts?.[0]?.text || '';
                 rawText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
 
