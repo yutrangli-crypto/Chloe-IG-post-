@@ -74,7 +74,7 @@
         
         <div class="flex items-center space-x-1.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs px-3 py-1.5 rounded-full">
           <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span id="currentModelBadge">Gemini 1.5 Flash (穩定版)</span>
+          <span id="currentModelBadge">自動選擇模型</span>
         </div>
       </div>
     </div>
@@ -96,7 +96,7 @@
             <i class="fa-instagram fab mr-1 text-rose-500"></i> IG 風格排版 & Gemini AI 智能解析
           </span>
           <span class="bg-orange-100/80 text-orange-800 px-2.5 py-0.5 rounded-md font-medium border border-orange-200/50">
-            <i class="fa-solid fa-rotate-right mr-1 text-amber-600"></i> 已升級 Gemini 1.5 Flash 避開 404 錯誤
+            <i class="fa-solid fa-rotate-right mr-1 text-amber-600"></i> 自動偵測最新 Gemini 模型
           </span>
         </div>
       </div>
@@ -321,15 +321,13 @@
         <div>
           <label class="block font-medium text-gray-700 mb-1">主要 Gemini 模型選擇</label>
           <select id="modalModelSelect" class="w-full p-2.5 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-amber-400">
-            <option value="gemini-1.5-flash" selected>gemini-1.5-flash (推薦：快速且穩定)</option>
-            <option value="gemini-1.5-pro">gemini-1.5-pro (極高推理品質)</option>
-            <option value="gemini-2.0-flash-exp">gemini-2.0-flash-exp (最新測試版)</option>
+            <option value="auto" selected>自動選擇最新可用模型（推薦）</option>
           </select>
         </div>
 
         <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 text-amber-800 text-[11px] space-y-1">
-          <div class="font-bold"><i class="fa-solid fa-shield-halved mr-1"></i> 自動 404 容錯機制說明：</div>
-          <p>若選擇的模型因地區或版本升級回傳 HTTP 404 錯誤，系統將自動啟動模型輪詢備援機制 (Model Fallback Sequence)，確保解析順暢不卡關。</p>
+          <div class="font-bold"><i class="fa-solid fa-circle-info mr-1"></i> 如何取得免費 API Key：</div>
+          <p>到 aistudio.google.com/apikey 登入 Google 帳號 → Create API key → 複製貼上即可。系統會自動向 Google 查詢目前可用的模型，不會再因舊模型下架而 404。</p>
         </div>
       </div>
 
@@ -344,7 +342,7 @@
     // Global Application State
     let state = {
       apiKey: localStorage.getItem('gemini_api_key') || '',
-      selectedModel: localStorage.getItem('gemini_model') || 'gemini-1.5-flash',
+      selectedModel: (function(){ const m = localStorage.getItem('gemini_model'); return (!m || /gemini-(1\.5|2\.0)/.test(m)) ? 'auto' : m; })(),
       schedules: [],
       rules: [
         { key: '安', day: '星期五 (Fri)', time: '晚上 9:00', venue: '安和 R&B Swing' }
@@ -376,7 +374,7 @@
       if (input) input.value = state.apiKey;
       if (select) select.value = state.selectedModel;
 
-      document.getElementById('currentModelBadge').innerText = `${state.selectedModel} (穩定版)`;
+      document.getElementById('currentModelBadge').innerText = state.selectedModel === 'auto' ? '自動選擇模型' : state.selectedModel;
     }
 
     function openApiModal() {
@@ -441,6 +439,33 @@
       });
     }
 
+    // Ask Google which models this key can actually use (avoids hard-coded, retired model names)
+    async function getUsableModels(apiKey) {
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?pageSize=200&key=${apiKey}`);
+      if (!res.ok) {
+        const e = await res.json().catch(() => ({}));
+        throw new Error(e.error?.message || `API Key 驗證失敗 (HTTP ${res.status})，請確認金鑰是否正確`);
+      }
+      const data = await res.json();
+      let names = (data.models || [])
+        .filter(m => (m.supportedGenerationMethods || []).includes('generateContent'))
+        .map(m => m.name.replace('models/', ''))
+        .filter(n => /^gemini-/.test(n) && /flash/.test(n) && !/image|tts|audio|live|embed|robotics|omni|thinking|exp/.test(n));
+      // stable first, preview last; newer version numbers first; lite last
+      const ver = n => parseFloat((n.match(/gemini-(\d+(?:\.\d+)?)/) || [0, 0])[1]);
+      names.sort((a, b) => {
+        const pa = /preview/.test(a) ? 1 : 0, pb = /preview/.test(b) ? 1 : 0;
+        if (pa !== pb) return pa - pb;
+        const la = /lite/.test(a) ? 1 : 0, lb = /lite/.test(b) ? 1 : 0;
+        if (la !== lb) return la - lb;
+        return ver(b) - ver(a);
+      });
+      if (state.selectedModel !== 'auto') names.unshift(state.selectedModel);
+      names = [...new Set(names)].slice(0, 4);
+      if (names.length === 0) throw new Error('這把 API Key 找不到可用的 Gemini 模型');
+      return names;
+    }
+
     async function parseScheduleWithGemini() {
       const apiKey = state.apiKey || localStorage.getItem('gemini_api_key');
 
@@ -486,8 +511,7 @@
         }
         partsPayload.push({ text: systemPrompt });
 
-        const fallbackModels = [state.selectedModel, 'gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash-exp'];
-        const uniqueModels = [...new Set(fallbackModels)];
+        const uniqueModels = await getUsableModels(apiKey);
 
         let successData = null;
         let lastError = null;
@@ -507,11 +531,6 @@
                 }
               })
             });
-
-            if (response.status === 404) {
-              console.warn(`Model ${model} 回傳 404，嘗試切換備援模型...`);
-              continue;
-            }
 
             if (!response.ok) {
               const errJson = await response.json().catch(() => ({}));
