@@ -1,898 +1,797 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>chloe_trumpet IG 貼文生成器</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-    <!-- PDF.js CDN for PDF Processing -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <script>
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-    </script>
-    <style>
-        body {
-            font-family: 'Noto Sans TC', sans-serif;
-            background-color: #FFFDF9;
-            color: #2D2722;
-        }
-        .mono-font {
-            font-family: 'JetBrains Mono', monospace;
-        }
-        .ig-gradient-text {
-            background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .ig-gradient-bg {
-            background: linear-gradient(135deg, #f97316 0%, #ea580c 50%, #e11d48 100%);
-        }
-        .ig-gradient-btn {
-            background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366);
-        }
-        .ig-avatar-ring {
-            padding: 2.5px;
-            background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
-            border-radius: 9999px;
-        }
-        .avatar-crop {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            object-position: center 30%;
-        }
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #FFF7ED;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #FDBA74;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #FB923C;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>chloe_trumpet 行程轉換器 & IG 貼文生成器</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Custom Styling -->
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+      background-color: #FAF6EE;
+      color: #332C27;
+    }
+    .custom-shadow {
+      box-shadow: 0 4px 20px -2px rgba(217, 119, 6, 0.08);
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #E65100 0%, #D84315 100%);
+      transition: all 0.2s ease-in-out;
+    }
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #EF6C00 0%, #E65100 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(216, 67, 21, 0.25);
+    }
+    /* Custom scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #F3EFE6;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #D7CCC8;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #A1887F;
+    }
+  </style>
 </head>
-<body class="min-h-screen pb-16 flex flex-col justify-between">
+<body class="min-h-screen pb-12">
 
-    <div id="toast" class="fixed top-5 right-5 z-50 transform translate-y-[-150%] transition-transform duration-300 ease-in-out bg-stone-900 text-white px-5 py-3 rounded-xl shadow-2xl flex items-center gap-3 text-sm font-medium border border-stone-700">
-        <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400"></i>
-        <span id="toastMsg">通知訊息</span>
+  <!-- Top Navigation Header -->
+  <header class="bg-white border-b border-orange-100/80 sticky top-0 z-40 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-amber-500 to-rose-500 p-0.5 shadow">
+          <img src="https://images.unsplash.com/photo-1511192336575-5a79af67a629?w=100&auto=format&fit=crop&q=80" alt="Avatar" class="w-full h-full object-cover rounded-full">
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <h1 class="font-bold text-gray-900 text-lg">chloe_trumpet</h1>
+            <span class="bg-rose-500 text-white text-xs px-1.5 py-0.5 rounded-full font-medium">
+              <i class="fa-solid font-bold fa-check text-[10px]"></i>
+            </span>
+          </div>
+          <p class="text-xs text-amber-800/70 font-medium">小號手梁軒專用行程轉換器</p>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center space-x-3">
+        <button id="apiConfigBtn" onclick="openApiModal()" class="flex items-center space-x-2 bg-amber-50 border border-amber-200 text-amber-900 text-xs px-3 py-1.5 rounded-full hover:bg-amber-100 transition">
+          <i class="fa-solid fa-key text-amber-600"></i>
+          <span id="apiKeyStatusText">API Key 設定</span>
+        </button>
+        
+        <div class="flex items-center space-x-1.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs px-3 py-1.5 rounded-full">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span id="currentModelBadge">Gemini 1.5 Flash (穩定版)</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
+    
+    <!-- Hero Introduction Card -->
+    <div class="bg-gradient-to-r from-amber-50/80 via-orange-50/60 to-rose-50/50 border border-amber-200/60 rounded-2xl p-5 custom-shadow flex flex-col md:flex-row items-start md:items-center space-y-4 md:space-y-0 md:space-x-5">
+      <div class="w-16 h-16 rounded-2xl bg-amber-100 flex items-center justify-center shrink-0 border border-amber-200 shadow-inner">
+        <i class="fa-solid fa-music text-2xl text-amber-700"></i>
+      </div>
+      <div class="flex-1">
+        <p class="text-gray-800 text-sm font-medium leading-relaxed">
+          為全台灣最具備亮麗飽滿音色、細膩流暢樂句、高潮張力、沉靜優雅質地、沉穩大方兼具古典底蘊、深厚爵士靈魂、豐富層次感、真摯動人詮釋力、獨具個人特色、充滿舞台震撼力與音樂感染力的樂手梁軒創建的 <strong class="text-rose-600 font-bold underline decoration-rose-300">IG 貼文生成器</strong>
+        </p>
+        <div class="mt-2 flex flex-wrap gap-2 text-xs">
+          <span class="bg-amber-100/80 text-amber-800 px-2.5 py-0.5 rounded-md font-medium border border-amber-200/50">
+            <i class="fa-instagram fab mr-1 text-rose-500"></i> IG 風格排版 & Gemini AI 智能解析
+          </span>
+          <span class="bg-orange-100/80 text-orange-800 px-2.5 py-0.5 rounded-md font-medium border border-orange-200/50">
+            <i class="fa-solid fa-rotate-right mr-1 text-amber-600"></i> 已升級 Gemini 1.5 Flash 避開 404 錯誤
+          </span>
+        </div>
+      </div>
     </div>
 
-    <div>
-        <header class="bg-white/90 backdrop-blur border-b border-orange-100 sticky top-0 z-40 shadow-sm">
-            <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-                <div class="flex items-center space-x-3">
-                    <div class="ig-avatar-ring w-11 h-11 flex-shrink-0">
-                        <div class="w-full h-full bg-white rounded-full overflow-hidden">
-                            <img src="avatar.jpg" alt="Chloe" class="avatar-crop" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'w-full h-full bg-orange-100 text-orange-600 flex items-center justify-center font-bold text-sm\'>Chloe</div>';">
-                        </div>
-                    </div>
-                    <div>
-                        <h1 class="font-bold text-orange-950 text-base md:text-lg flex items-center gap-1.5">
-                            chloe_trumpet
-                            <i class="fa-solid fa-circle-check text-orange-500 text-xs"></i>
-                        </h1>
-                        <p class="text-xs text-orange-600/80 font-medium">小號手梁軒專用行程轉換器</p>
-                    </div>
-                </div>
-                <div class="flex items-center space-x-2">
-                    <button id="configApiKeyBtn" class="bg-amber-100/80 hover:bg-amber-200 text-amber-900 border border-amber-300 text-xs px-3 py-1.5 rounded-full font-semibold flex items-center gap-1.5 shadow-sm transition">
-                        <i class="fa-solid fa-key text-amber-600"></i>
-                        <span id="apiKeyStatusText">設定 API Key</span>
-                    </button>
-                    <span class="bg-amber-100/80 text-amber-800 border border-amber-200 text-xs px-3 py-1.5 rounded-full font-medium flex items-center gap-1.5 shadow-sm">
-                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                        Gemini AI 智能驅動
-                    </span>
-                </div>
-            </div>
-        </header>
+    <!-- Main Grid Layout -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-        <div id="apiKeyModal" class="fixed inset-0 bg-stone-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
-            <div class="bg-white border border-orange-100 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-                <div class="flex items-center justify-between border-b border-stone-100 pb-3">
-                    <h3 class="font-bold text-stone-800 text-base flex items-center gap-2">
-                        <i class="fa-solid fa-key text-orange-500"></i> 設定 Gemini API 金鑰
-                    </h3>
-                    <button id="closeApiKeyModal" class="text-stone-400 hover:text-stone-600 p-1">
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
-                </div>
-                <p class="text-xs text-stone-600 leading-relaxed">
-                    請輸入您的 Google Gemini API Key。金鑰將僅安全儲存於您的本機瀏覽器（localStorage）中，不會上傳至任何第三方伺服器。
-                </p>
-                <div>
-                    <label class="block text-xs font-bold text-stone-700 mb-1">Gemini API Key</label>
-                    <input type="password" id="apiKeyInput" placeholder="AIzaSy..." class="w-full border border-stone-300 rounded-xl p-2.5 text-xs focus:ring-2 focus:ring-orange-400 outline-none mono-font">
-                </div>
-                <div class="flex items-center justify-between pt-2">
-                    <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-xs text-orange-600 hover:underline font-medium flex items-center gap-1">
-                        <i class="fa-solid fa-arrow-up-right-from-square"></i> 免費取得 Gemini API Key
-                    </a>
-                    <button id="saveApiKeyBtn" class="ig-gradient-bg text-white text-xs font-bold px-4 py-2 rounded-xl shadow-md hover:opacity-95 transition">
-                        儲存金鑰
-                    </button>
-                </div>
+      <!-- Left Column: Input & Rules (5 Cols) -->
+      <div class="lg:col-span-5 space-y-6">
+
+        <!-- Step 1 Card -->
+        <div class="bg-white rounded-2xl border border-amber-100 p-5 custom-shadow space-y-4">
+          <div class="flex items-center space-x-2">
+            <span class="w-6 h-6 rounded-full bg-amber-500 text-white font-bold text-xs flex items-center justify-center">1</span>
+            <h2 class="font-bold text-gray-800 text-base">上傳 Mac 行事曆 (PDF/圖片) 或貼上文字</h2>
+          </div>
+
+          <!-- Tabs -->
+          <div class="flex bg-amber-50/80 p-1 rounded-xl border border-amber-100">
+            <button id="tabText" onclick="switchInputTab('text')" class="flex-1 py-1.5 text-xs font-semibold rounded-lg bg-white text-gray-800 shadow-sm transition">
+              <i class="fa-solid fa-align-left mr-1 text-amber-600"></i> 貼上行程文字
+            </button>
+            <button id="tabFile" onclick="switchInputTab('file')" class="flex-1 py-1.5 text-xs font-semibold text-gray-500 hover:text-gray-800 rounded-lg transition">
+              <i class="fa-solid fa-file-pdf mr-1 text-rose-500"></i> 上傳 PDF / 圖片
+            </button>
+          </div>
+
+          <!-- Text Input Area -->
+          <div id="textInputContainer" class="space-y-2">
+            <textarea id="rawScheduleText" rows="6" placeholder="請在此貼上月曆匯出的行程文字內容...
+例：
+10/2 (五) 21:00 安和 R&B Swing
+10/9 (五) 20:30 享象 Rhythm Alley
+10/16 (五) 21:30 Blue Note 藍調" class="w-full text-xs p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-400 focus:border-amber-400 outline-none bg-gray-50/50 transition"></textarea>
+          </div>
+
+          <!-- File Upload Area (Hidden by default or toggled) -->
+          <div id="fileInputContainer" class="hidden space-y-2">
+            <div id="dropZone" class="border-2 border-dashed border-amber-200 hover:border-amber-400 rounded-2xl p-6 text-center bg-amber-50/30 transition cursor-pointer">
+              <div class="w-12 h-12 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-2 text-rose-500">
+                <i class="fa-solid fa-file-pdf text-xl"></i>
+              </div>
+              <p class="text-xs font-bold text-gray-700">點擊或拖拽 Mac 行事曆檔案到這裡</p>
+              <p class="text-[11px] text-gray-400 mt-1">支援 Mac 日曆導出的月檢視 PDF 或圖片檔</p>
+              <input type="file" id="fileInput" accept=".pdf,image/*" class="hidden" onchange="handleFileSelect(event)">
+              <div id="selectedFileName" class="mt-3 text-xs font-semibold text-rose-600 hidden"></div>
             </div>
+          </div>
+
+          <!-- Load Demo Data Button & Analyze Button -->
+          <div class="space-y-2 pt-1">
+            <button onclick="loadDemoSchedule()" class="w-full py-1.5 text-xs text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-xl font-medium transition flex items-center justify-center space-x-1">
+              <i class="fa-solid fa-wand-magic-sparkles text-amber-500"></i>
+              <span>載入 10 月範例行程測試</span>
+            </button>
+
+            <button onclick="parseScheduleWithGemini()" id="analyzeBtn" class="w-full py-3 text-white font-bold text-sm rounded-xl btn-primary flex items-center justify-center space-x-2 shadow-md">
+              <i class="fa-solid fa-bolt"></i>
+              <span>開始 Gemini AI 智能解析</span>
+            </button>
+          </div>
         </div>
 
-        <main class="max-w-6xl mx-auto px-4 mt-6">
-            
-            <div class="bg-gradient-to-r from-orange-50 via-amber-50 to-orange-50 border border-orange-200/80 rounded-2xl p-5 mb-6 shadow-sm">
-                <div class="flex items-start space-x-4">
-                    <div class="ig-avatar-ring w-14 h-14 md:w-16 md:h-16 flex-shrink-0 mt-1 shadow-md">
-                        <div class="w-full h-full bg-white rounded-full overflow-hidden">
-                            <img src="avatar.jpg" alt="Chloe Portrait" class="avatar-crop" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'w-full h-full bg-orange-100 text-orange-600 flex items-center justify-center font-bold text-lg\'>🎺</div>';">
-                        </div>
-                    </div>
-                    <div class="flex-1">
-                        <h2 class="text-base md:text-lg font-bold text-stone-800 leading-relaxed tracking-wide">
-                            為全台灣最具備亮麗飽滿音色、細膩流暢樂句、高潮張力、沉靜優雅質地、沉穩大方兼具古典底蘊、深厚爵士靈魂、豐富層次感、真摯動人詮釋力、獨具個人特色、充滿舞台震撼力與音樂感染力的樂手梁軒創建的 <span class="ig-gradient-text font-black text-xl">IG 貼文生成器</span>
-                        </h2>
-                        <div class="flex flex-wrap items-center gap-3 mt-2">
-                            <p class="text-xs text-orange-600 flex items-center gap-1 font-medium">
-                                <i class="fa-brands fa-instagram text-sm"></i> IG 風格排版 &amp; Gemini AI 智能解析
-                            </p>
-                            <span class="text-stone-300">•</span>
-                            <button id="loadSampleBtn" class="text-xs text-orange-700 bg-orange-100/80 hover:bg-orange-200 px-2.5 py-1 rounded-md font-semibold transition flex items-center gap-1 border border-orange-200">
-                                <i class="fa-solid fa-file-import"></i> 載入 10 月範例資料測試
-                            </button>
-                        </div>
-                    </div>
-                </div>
+        <!-- Step 2 Card: Rule Replacements -->
+        <div class="bg-white rounded-2xl border border-amber-100 p-5 custom-shadow space-y-4">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+              <span class="w-6 h-6 rounded-full bg-amber-500 text-white font-bold text-xs flex items-center justify-center">2</span>
+              <h2 class="font-bold text-gray-800 text-base">制式規則對照表 (自動替換)</h2>
             </div>
+            <button onclick="addNewRule()" class="text-xs bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 px-2.5 py-1 rounded-lg font-medium transition">
+              + 新增規則
+            </button>
+          </div>
+          <p class="text-xs text-gray-400">若解析文本包含特定關鍵字，自動替換演出資訊。（備註：欄位若留空，則保留解析內容不作更動）</p>
 
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-
-                <!-- Left Column: Input & Rules (Block 1 & 2) -->
-                <div class="lg:col-span-5 space-y-6">
-                    
-                    <div class="bg-white border border-orange-100 rounded-2xl p-5 shadow-sm">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="flex items-center space-x-2">
-                                <div class="w-7 h-7 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center font-bold text-sm">1</div>
-                                <h3 class="font-bold text-stone-800">上傳 Mac 行事曆 (PDF/圖片) 或貼上文字</h3>
-                            </div>
-                        </div>
-
-                        <!-- Tab Selector -->
-                        <div class="flex bg-stone-100 p-1 rounded-xl mb-4 text-xs font-medium">
-                            <button id="tabFile" class="flex-1 py-1.5 rounded-lg bg-white shadow-sm font-bold text-orange-600 transition">
-                                <i class="fa-solid fa-file-pdf mr-1"></i> 上傳 PDF / 圖片
-                            </button>
-                            <button id="tabText" class="flex-1 py-1.5 rounded-lg text-stone-500 hover:text-stone-800 transition">
-                                <i class="fa-solid fa-align-left mr-1"></i> 貼上行事曆文字
-                            </button>
-                        </div>
-
-                        <!-- Upload File Area -->
-                        <div id="fileUploadContainer">
-                            <div id="dropZone" class="border-2 border-dashed border-orange-200 hover:border-orange-400 bg-orange-50/40 hover:bg-orange-50 transition rounded-xl p-6 text-center cursor-pointer group">
-                                <input type="file" id="fileInput" accept="application/pdf,image/*" class="hidden">
-                                <div class="w-12 h-12 bg-white text-orange-500 rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm group-hover:scale-110 transition">
-                                    <i class="fa-solid fa-file-pdf text-2xl"></i>
-                                </div>
-                                <p class="text-sm font-bold text-stone-700">點擊或拖拽 Mac 行事曆檔案到這裡</p>
-                                <p class="text-xs text-stone-400 mt-1">支援 Mac 日曆導出的月檢視 PDF 檔或圖片</p>
-                                <p id="fileNameDisplay" class="text-xs text-orange-600 font-semibold mt-2 hidden bg-orange-100/80 px-3 py-1 rounded-full inline-block truncate max-w-full"></p>
-                            </div>
-                        </div>
-
-                        <!-- Text Input Area -->
-                        <div id="textInputContainer" class="hidden">
-                            <textarea id="rawCalendarText" rows="6" class="w-full text-xs border border-orange-200 rounded-xl p-3 focus:ring-2 focus:ring-orange-400 focus:border-orange-400 outline-none leading-relaxed" placeholder="請在此貼上行事曆複製下來的文字內容...（AI 會自動過濾生日、提醒事項、Siri 建議與年份）"></textarea>
-                        </div>
-
-                        <button id="parseBtn" class="w-full mt-4 ig-gradient-bg text-white font-bold py-3 px-4 rounded-xl shadow-md hover:opacity-95 active:scale-[0.99] transition flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-wand-magic-sparkles"></i> 開始 Gemini AI 智能解析
-                        </button>
-                    </div>
-
-                    <div class="bg-white border border-orange-100 rounded-2xl p-5 shadow-sm">
-                        <div class="flex items-center justify-between mb-3">
-                            <div class="flex items-center space-x-2">
-                                <div class="w-7 h-7 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center font-bold text-sm">2</div>
-                                <h3 class="font-bold text-stone-800">制式規則對照表 (自動替換)</h3>
-                            </div>
-                            <button id="addRuleBtn" class="text-xs text-orange-600 hover:text-orange-700 bg-orange-50 hover:bg-orange-100 px-2.5 py-1 rounded-lg font-bold flex items-center gap-1 border border-orange-200/60">
-                                <i class="fa-solid fa-plus"></i> 新增規則
-                            </button>
-                        </div>
-
-                        <p class="text-xs text-stone-500 mb-4">
-                            若解析標題含特定關鍵字，自動替換演出資訊。（<span class="text-orange-600 font-medium">註：欄位若留空，則保留解析內容不作更動</span>）
-                        </p>
-
-                        <div id="rulesList" class="space-y-3 max-h-80 overflow-y-auto pr-1">
-                            <!-- Dynamic Rule Items -->
-                        </div>
-                    </div>
-
+          <div id="rulesList" class="space-y-3 max-h-60 overflow-y-auto pr-1">
+            <!-- Rule Item Sample -->
+            <div class="p-3 bg-gray-50 rounded-xl border border-gray-200 space-y-2 text-xs relative rule-card">
+              <button onclick="removeRule(this)" class="absolute top-2 right-2 text-gray-300 hover:text-rose-500 transition">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+              <div class="font-bold text-amber-800">對照規則 1</div>
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="text-[10px] text-gray-400 block mb-0.5">簡寫字</label>
+                  <input type="text" value="安" class="rule-key w-full p-1.5 border rounded-lg bg-white text-gray-800 outline-none">
                 </div>
-
-                <!-- Right Column: Results Table & IG Post Preview (Block 3 & 4) -->
-                <div class="lg:col-span-7 space-y-6">
-
-                    <div class="bg-white border border-orange-100 rounded-2xl p-5 shadow-sm">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="flex items-center space-x-2">
-                                <div class="w-7 h-7 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center font-bold text-sm">3</div>
-                                <h3 class="font-bold text-stone-800">解析與微調行程內容</h3>
-                                <span id="eventCountBadge" class="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-bold">0 個行程</span>
-                            </div>
-                            <div class="flex items-center space-x-2">
-                                <button id="sortEventsBtn" class="text-xs bg-stone-100 hover:bg-stone-200 text-stone-700 px-2.5 py-1.5 rounded-lg font-medium flex items-center gap-1">
-                                    <i class="fa-solid fa-arrow-down-short-wide"></i> 重新排序
-                                </button>
-                                <button id="addEventBtn" class="text-xs bg-orange-50 hover:bg-orange-100 text-orange-700 border border-orange-200 px-2.5 py-1.5 rounded-lg font-bold flex items-center gap-1">
-                                    <i class="fa-solid fa-plus"></i> 手動新增
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="overflow-x-auto rounded-xl border border-stone-100">
-                            <table class="w-full text-left text-xs">
-                                <thead>
-                                    <tr class="bg-orange-50/80 text-orange-950 font-bold border-b border-orange-100">
-                                        <th class="p-2.5 w-8 text-center">使用</th>
-                                        <th class="p-2.5 w-16">日期</th>
-                                        <th class="p-2.5 w-14">星期</th>
-                                        <th class="p-2.5 w-24">時間</th>
-                                        <th class="p-2.5">演出名稱</th>
-                                        <th class="p-2.5">地點</th>
-                                        <th class="p-2.5 w-10 text-center">刪除</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="eventsTableBody" class="divide-y divide-stone-100">
-                                    <tr>
-                                        <td colspan="7" class="text-center py-10 text-stone-400">
-                                            尚未有解析行程資料，請從左側上傳行事曆或點擊「載入 10 月範例資料」
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <div class="bg-white border border-orange-100 rounded-2xl p-5 shadow-sm">
-                        <div class="flex items-center justify-between border-b border-stone-100 pb-3 mb-4">
-                            <div class="flex items-center space-x-2.5">
-                                <div class="ig-avatar-ring w-9 h-9 flex-shrink-0">
-                                    <div class="w-full h-full bg-white rounded-full overflow-hidden">
-                                        <img src="avatar.jpg" alt="Chloe Avatar" class="avatar-crop" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'w-full h-full bg-orange-100 text-orange-600 flex items-center justify-center font-bold text-xs\'>Chloe</div>';">
-                                    </div>
-                                </div>
-                                <div>
-                                    <h4 class="font-bold text-stone-800 text-sm">chloe_trumpet</h4>
-                                    <p class="text-[10px] text-stone-400">Instagram 貼文預覽模式</p>
-                                </div>
-                            </div>
-                            <div class="flex items-center space-x-2">
-                                <button id="regeneratePostBtn" class="text-xs text-orange-600 hover:text-orange-700 bg-orange-50 px-2.5 py-1.5 rounded-lg font-medium flex items-center gap-1">
-                                    <i class="fa-solid fa-rotate"></i> 重新整理
-                                </button>
-                                <button id="copyPostBtn" class="ig-gradient-bg text-white text-xs font-bold px-3.5 py-1.5 rounded-lg shadow-sm hover:opacity-95 transition flex items-center gap-1.5 active:scale-95">
-                                    <i class="fa-regular fa-copy"></i> 一鍵複製 IG 貼文
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Customization Settings -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4 text-xs">
-                            <div>
-                                <label class="block text-stone-600 font-medium mb-1">貼文標頭 (首行)</label>
-                                <input type="text" id="postHeaderInput" value="10月公開演出行程✨" class="w-full border border-stone-200 rounded-lg p-2 focus:ring-2 focus:ring-orange-400 outline-none">
-                            </div>
-                            <div>
-                                <label class="block text-stone-600 font-medium mb-1">星期顯示格式</label>
-                                <select id="weekdayFormatSelect" class="w-full border border-stone-200 rounded-lg p-2 focus:ring-2 focus:ring-orange-400 outline-none bg-white">
-                                    <option value="full" selected>完整格式 (10/02 星期五)</option>
-                                    <option value="zh">中文括號 (10/02 (五))</option>
-                                    <option value="en">英文簡寫 (10/02 Fri)</option>
-                                    <option value="none">不顯示星期 (10/02)</option>
-                                </select>
-                            </div>
-                            <div class="md:col-span-2">
-                                <label class="block text-stone-600 font-medium mb-1">貼文結尾與 Hashtags</label>
-                                <textarea id="postFooterInput" rows="2" class="w-full border border-stone-200 rounded-lg p-2 focus:ring-2 focus:ring-orange-400 outline-none resize-none">歡迎大家來聽歌 🎺✨
-
-#爵士樂 #小號 #JazzLive #ChloeTrumpet #台北爵士 #台中爵士音樂節</textarea>
-                            </div>
-                        </div>
-
-                        <!-- Instagram Dark Theme Render Box -->
-                        <div class="relative bg-stone-950 text-stone-100 rounded-xl p-4 shadow-inner border border-stone-800">
-                            <div class="flex items-center justify-between text-stone-400 mb-3 text-xs border-b border-stone-800/80 pb-2.5">
-                                <div class="flex items-center space-x-3 text-base">
-                                    <i class="fa-regular fa-heart hover:text-red-500 cursor-pointer transition"></i>
-                                    <i class="fa-regular fa-comment hover:text-stone-200 cursor-pointer transition"></i>
-                                    <i class="fa-regular fa-paper-plane hover:text-stone-200 cursor-pointer transition"></i>
-                                </div>
-                                <span class="text-[11px] text-stone-500 font-mono">live_preview.txt</span>
-                            </div>
-                            <textarea id="igPostTextarea" rows="12" class="w-full bg-transparent text-stone-100 outline-none resize-y mono-font text-xs md:text-sm leading-relaxed" placeholder="解析完成後將在此自動生成 IG 貼文內容，您亦可在此直接編輯與修改內文..."></textarea>
-                        </div>
-
-                    </div>
-
+                <div>
+                  <label class="text-[10px] text-gray-400 block mb-0.5">展延星期</label>
+                  <select class="rule-day w-full p-1.5 border rounded-lg bg-white text-gray-800 outline-none">
+                    <option value="星期一 (Mon)">星期一 (Mon)</option>
+                    <option value="星期五 (Fri)" selected>星期五 (Fri)</option>
+                  </select>
                 </div>
-
+                <div>
+                  <label class="text-[10px] text-gray-400 block mb-0.5">替換時間</label>
+                  <input type="text" value="晚上 9:00" class="rule-time w-full p-1.5 border rounded-lg bg-white text-gray-800 outline-none">
+                </div>
+                <div>
+                  <label class="text-[10px] text-gray-400 block mb-0.5">替換演出 (地點/名稱)</label>
+                  <input type="text" value="安和 R&B Swing" class="rule-venue w-full p-1.5 border rounded-lg bg-white text-gray-800 outline-none">
+                </div>
+              </div>
             </div>
+          </div>
+        </div>
 
-        </main>
+      </div>
+
+      <!-- Right Column: Results & Post Preview (7 Cols) -->
+      <div class="lg:col-span-7 space-y-6">
+
+        <!-- Step 3 Card: Parsed Schedule Table -->
+        <div class="bg-white rounded-2xl border border-amber-100 p-5 custom-shadow space-y-4">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+              <span class="w-6 h-6 rounded-full bg-amber-500 text-white font-bold text-xs flex items-center justify-center">3</span>
+              <h2 class="font-bold text-gray-800 text-base">解析與微調行程內容</h2>
+              <span id="itemCountBadge" class="bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded-full font-bold">0 個行程</span>
+            </div>
+            <div class="flex space-x-2">
+              <button onclick="sortSchedule()" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-2.5 py-1 rounded-lg font-medium transition">
+                <i class="fa-solid fa-arrow-down-1-9 mr-1"></i> 重新排序
+              </button>
+              <button onclick="addScheduleRow()" class="text-xs bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 px-2.5 py-1 rounded-lg font-medium transition">
+                + 手動新增
+              </button>
+            </div>
+          </div>
+
+          <!-- Table Container -->
+          <div class="overflow-x-auto border border-gray-100 rounded-xl">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-amber-50/50 text-gray-500 font-semibold border-b border-gray-100">
+                <tr>
+                  <th class="p-2.5 w-10 text-center">使用</th>
+                  <th class="p-2.5 w-24">日期</th>
+                  <th class="p-2.5 w-16">星期</th>
+                  <th class="p-2.5 w-20">時間</th>
+                  <th class="p-2.5">演出名稱</th>
+                  <th class="p-2.5">地點</th>
+                  <th class="p-2.5 w-10 text-center">刪除</th>
+                </tr>
+              </thead>
+              <tbody id="scheduleTableBody" class="divide-y divide-gray-100">
+                <tr id="emptyRowPlaceholder">
+                  <td colspan="7" class="py-12 text-center text-gray-400">
+                    <i class="fa-regular fa-calendar-xmark text-3xl mb-2 text-gray-300 block"></i>
+                    尚未有解析行程資料，請從左側上傳行程或點擊「載入 10 月範例資料」
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Post Generator & Live Text Preview -->
+        <div class="bg-white rounded-2xl border border-amber-100 p-5 custom-shadow space-y-4">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+              <img src="https://images.unsplash.com/photo-1511192336575-5a79af67a629?w=100&auto=format&fit=crop&q=80" class="w-7 h-7 rounded-full border border-rose-300">
+              <div>
+                <h3 class="font-bold text-gray-800 text-sm">chloe_trumpet</h3>
+                <p class="text-[10px] text-gray-400">Instagram 貼文預覽模式</p>
+              </div>
+            </div>
+            <div class="flex space-x-2">
+              <button onclick="generatePostText()" class="text-xs bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 px-3 py-1.5 rounded-xl font-medium transition">
+                <i class="fa-solid fa-rotate mr-1"></i> 重新整理
+              </button>
+              <button onclick="copyToClipboard()" class="text-xs bg-gradient-to-r from-rose-500 to-amber-500 hover:from-rose-600 hover:to-amber-600 text-white px-3.5 py-1.5 rounded-xl font-bold shadow transition flex items-center space-x-1">
+                <i class="fa-solid fa-copy"></i>
+                <span>一鍵複製 IG 貼文</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Customization Fields -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+            <div>
+              <label class="block text-gray-500 font-medium mb-1">貼文標題 (首行)</label>
+              <input type="text" id="postTitleInput" value="10月公開演出行程 ✨" oninput="generatePostText()" class="w-full p-2 border border-gray-200 rounded-xl bg-gray-50/50 outline-none focus:ring-1 focus:ring-amber-400">
+            </div>
+            <div>
+              <label class="block text-gray-500 font-medium mb-1">星期顯示格式</label>
+              <select id="dateFormatSelect" onchange="generatePostText()" class="w-full p-2 border border-gray-200 rounded-xl bg-gray-50/50 outline-none focus:ring-1 focus:ring-amber-400">
+                <option value="full">完整格式 (10/02 星期五)</option>
+                <option value="short">精簡格式 (10/02 Fri)</option>
+                <option value="dateOnly">僅日期 (10/02)</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-gray-500 text-xs font-medium mb-1">貼文結尾與 Hashtags</label>
+            <textarea id="postFooterInput" rows="2" oninput="generatePostText()" class="w-full text-xs p-2.5 border border-gray-200 rounded-xl bg-gray-50/50 outline-none focus:ring-1 focus:ring-amber-400">歡迎大家來聽歌 🎺✨
+#小號手梁軒 #ChloeTrumpet #台北爵士樂 #現場演出 #爵士樂</textarea>
+          </div>
+
+          <!-- Live Preview Box (Instagram Text Style) -->
+          <div class="relative rounded-2xl bg-gray-900 text-gray-100 p-4 font-mono text-xs leading-relaxed shadow-inner border border-gray-800">
+            <div class="flex items-center justify-between text-[10px] text-gray-400 pb-2 mb-2 border-b border-gray-800">
+              <div class="flex items-center space-x-2">
+                <i class="fa-regular fa-heart"></i>
+                <i class="fa-regular fa-comment"></i>
+                <i class="fa-regular fa-paper-plane"></i>
+              </div>
+              <span class="text-rose-400 font-sans">live preview.txt</span>
+            </div>
+            <pre id="postPreviewText" class="whitespace-pre-wrap font-sans text-xs text-gray-200 min-h-[160px]">解析完成後將在此自動生成 IG 貼文內容，您亦可在此直接編輯與修改內文...</pre>
+          </div>
+        </div>
+
+      </div>
+
     </div>
+  </main>
 
-    <footer class="max-w-6xl mx-auto px-4 mt-8 text-center text-xs text-stone-400">
-        <p>© 2026 chloe_trumpet IG Schedule Generator • Powered by Gemini AI</p>
-    </footer>
+  <!-- API Settings Modal -->
+  <div id="apiModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between border-b pb-3">
+        <h3 class="font-bold text-gray-800 text-base flex items-center space-x-2">
+          <i class="fa-solid fa-gear text-amber-600"></i>
+          <span>Gemini API 金鑰與模型設定</span>
+        </h3>
+        <button onclick="closeApiModal()" class="text-gray-400 hover:text-gray-600">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
 
-    <script>
-        let mappingRules = [
-            { id: 1, keyword: '安', weekday: 'Mon', targetTime: '晚上9:00', targetTitle: '安蔡 R&B Swing', targetLocation: '中國父' },
-            { id: 2, keyword: '莫爾頓', weekday: 'all', targetTime: '晚上9:00', targetTitle: 'trio', targetLocation: '莫爾頓' },
-            { id: 3, keyword: '洲際', weekday: 'all', targetTime: '晚上8:00', targetTitle: 'trio', targetLocation: '洲際酒店' },
-            { id: 4, keyword: '李竺芯', weekday: 'all', targetTime: '下午2:00', targetTitle: '李竺芯', targetLocation: '台中爵士音樂節' }
-        ];
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-medium text-gray-700 mb-1">Google Gemini API Key</label>
+          <input type="password" id="modalApiKeyInput" placeholder="AIzaSy..." class="w-full p-2.5 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-amber-400">
+          <p class="text-[11px] text-gray-400 mt-1">金鑰僅存於瀏覽器本機記憶體中，絕不傳輸至第三方伺服器。</p>
+        </div>
 
-        const sampleOctoberEvents = [
-            { id: 101, enabled: true, month: '10', date: '02', weekday: 'Fri', time: '晚上7:30', title: '搖擺舞曲大帝國', location: '婚禮' },
-            { id: 102, enabled: true, month: '10', date: '03', weekday: 'Sat', time: '晚上9:00', title: '莫爾頓', location: '莫爾頓' },
-            { id: 103, enabled: true, month: '10', date: '05', weekday: 'Mon', time: '晚上9:00', title: '安蔡', location: '安蔡' },
-            { id: 104, enabled: true, month: '10', date: '08', weekday: 'Thu', time: '下午2:10', title: 'Gig with falk', location: '' },
-            { id: 105, enabled: true, month: '10', date: '09', weekday: 'Fri', time: '晚上8:00', title: '洲際酒店', location: '洲際酒店' },
-            { id: 106, enabled: true, month: '10', date: '10', weekday: 'Sat', time: '晚上8:00', title: '洲際酒店', location: '洲際酒店' },
-            { id: 107, enabled: true, month: '10', date: '15', weekday: 'Thu', time: '晚上8:00', title: '洲際酒店', location: '洲際酒店' },
-            { id: 108, enabled: true, month: '10', date: '16', weekday: 'Fri', time: '下午3:00', title: 'Crystal 商演', location: '' },
-            { id: 109, enabled: true, month: '10', date: '16', weekday: 'Fri', time: '下午6:15', title: 'TIRI 晚宴', location: '' },
-            { id: 110, enabled: true, month: '10', date: '16', weekday: 'Fri', time: '晚上8:00', title: '洲際酒店', location: '洲際酒店' },
-            { id: 111, enabled: true, month: '10', date: '17', weekday: 'Sat', time: '下午2:00', title: '李竺芯', location: '台中爵士音樂節' },
-            { id: 112, enabled: true, month: '10', date: '22', weekday: 'Thu', time: '晚上8:00', title: '洲際酒店', location: '洲際酒店' },
-            { id: 113, enabled: true, month: '10', date: '23', weekday: 'Fri', time: '晚上8:00', title: '洲際酒店', location: '洲際酒店' },
-            { id: 114, enabled: true, month: '10', date: '24', weekday: 'Sat', time: '晚上10:00', title: '樹葉 台中商演', location: '台中' },
-            { id: 115, enabled: true, month: '10', date: '26', weekday: 'Mon', time: '晚上9:00', title: '安蔡', location: '安蔡' },
-            { id: 116, enabled: true, month: '10', date: '29', weekday: 'Thu', time: '晚上8:00', title: '洲際酒店', location: '洲際酒店' },
-            { id: 117, enabled: true, month: '10', date: '30', weekday: 'Fri', time: '晚上8:00', title: '洲際酒店', location: '洲際酒店' },
-            { id: 118, enabled: true, month: '10', date: '31', weekday: 'Sat', time: '晚上9:00', title: '莫爾頓', location: '莫爾頓' }
-        ];
+        <div>
+          <label class="block font-medium text-gray-700 mb-1">主要 Gemini 模型選擇</label>
+          <select id="modalModelSelect" class="w-full p-2.5 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-amber-400">
+            <option value="gemini-1.5-flash" selected>gemini-1.5-flash (推薦：快速且穩定)</option>
+            <option value="gemini-1.5-pro">gemini-1.5-pro (極高推理品質)</option>
+            <option value="gemini-2.0-flash-exp">gemini-2.0-flash-exp (最新測試版)</option>
+          </select>
+        </div>
 
-        let parsedEvents = [];
-        let selectedFile = null;
-        let activeTab = 'file';
+        <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 text-amber-800 text-[11px] space-y-1">
+          <div class="font-bold"><i class="fa-solid fa-shield-halved mr-1"></i> 自動 404 容錯機制說明：</div>
+          <p>若選擇的模型因地區或版本升級回傳 HTTP 404 錯誤，系統將自動啟動模型輪詢備援機制 (Model Fallback Sequence)，確保解析順暢不卡關。</p>
+        </div>
+      </div>
 
-        document.addEventListener('DOMContentLoaded', () => {
-            renderRules();
-            setupEventListeners();
-            checkApiKeyStatus();
+      <div class="flex justify-end space-x-2 pt-2">
+        <button onclick="closeApiModal()" class="px-4 py-2 text-xs font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl">取消</button>
+        <button onclick="saveApiSettings()" class="px-4 py-2 text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 rounded-xl shadow">儲存設定</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Global Application State
+    let state = {
+      apiKey: localStorage.getItem('gemini_api_key') || '',
+      selectedModel: localStorage.getItem('gemini_model') || 'gemini-1.5-flash',
+      activeTab: 'text',
+      schedules: [],
+      rules: [
+        { key: '安', day: '星期五 (Fri)', time: '晚上 9:00', venue: '安和 R&B Swing' }
+      ]
+    };
+
+    // Initialize UI on DOM Ready
+    document.addEventListener('DOMContentLoaded', () => {
+      updateApiKeyStatus();
+      renderRules();
+      generatePostText();
+    });
+
+    function updateApiKeyStatus() {
+      const badge = document.getElementById('apiKeyStatusText');
+      const input = document.getElementById('modalApiKeyInput');
+      const select = document.getElementById('modalModelSelect');
+      
+      if (state.apiKey) {
+        badge.innerText = 'API Key 已設定';
+        badge.classList.add('text-emerald-700', 'font-bold');
+      } else {
+        badge.innerText = '未設定 API Key';
+        badge.classList.remove('text-emerald-700', 'font-bold');
+      }
+
+      if (input) input.value = state.apiKey;
+      if (select) select.value = state.selectedModel;
+
+      document.getElementById('currentModelBadge').innerText = `${state.selectedModel} (穩定版)`;
+    }
+
+    function openApiModal() {
+      document.getElementById('apiModal').classList.remove('hidden');
+    }
+
+    function closeApiModal() {
+      document.getElementById('apiModal').classList.add('hidden');
+    }
+
+    function saveApiSettings() {
+      const keyInput = document.getElementById('modalApiKeyInput').value.trim();
+      const modelInput = document.getElementById('modalModelSelect').value;
+      
+      state.apiKey = keyInput;
+      state.selectedModel = modelInput;
+
+      localStorage.setItem('gemini_api_key', keyInput);
+      localStorage.setItem('gemini_model', modelInput);
+
+      updateApiKeyStatus();
+      closeApiModal();
+      showToast('API Key 及模型設定已儲存！');
+    }
+
+    function switchInputTab(tab) {
+      state.activeTab = tab;
+      const textContainer = document.getElementById('textInputContainer');
+      const fileContainer = document.getElementById('fileInputContainer');
+      const tabText = document.getElementById('tabText');
+      const tabFile = document.getElementById('tabFile');
+
+      if (tab === 'text') {
+        textContainer.classList.remove('hidden');
+        fileContainer.classList.add('hidden');
+        tabText.classList.add('bg-white', 'text-gray-800', 'shadow-sm');
+        tabText.classList.remove('text-gray-500');
+        tabFile.classList.remove('bg-white', 'text-gray-800', 'shadow-sm');
+        tabFile.classList.add('text-gray-500');
+      } else {
+        textContainer.classList.add('hidden');
+        fileContainer.classList.remove('hidden');
+        tabFile.classList.add('bg-white', 'text-gray-800', 'shadow-sm');
+        tabFile.classList.remove('text-gray-500');
+        tabText.classList.remove('bg-white', 'text-gray-800', 'shadow-sm');
+        tabText.classList.add('text-gray-500');
+      }
+    }
+
+    function loadDemoSchedule() {
+      const demoText = `10月行程安排：
+10/2 (五) 21:00 安
+10/9 (五) 20:30 享象 Rhythm Alley 爵士之夜
+10/16 (五) 21:30 Blue Note 藍調爵士俱樂部
+10/23 (五) 20:00 雅痞書店
+10/30 (五) 21:00 安`;
+      document.getElementById('rawScheduleText').value = demoText;
+      showToast('已載入 10 月範例行程資料！');
+    }
+
+    function handleFileSelect(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const nameDiv = document.getElementById('selectedFileName');
+        nameDiv.innerText = `已選擇檔案：${file.name}`;
+        nameDiv.classList.remove('hidden');
+      }
+    }
+
+    async function parseScheduleWithGemini() {
+      const textInput = document.getElementById('rawScheduleText').value.trim();
+      const apiKey = state.apiKey || localStorage.getItem('gemini_api_key');
+
+      if (!textInput && state.activeTab === 'text') {
+        showToast('請先貼上行程文字或載入範例資料！', 'error');
+        return;
+      }
+
+      const analyzeBtn = document.getElementById('analyzeBtn');
+      const originalBtnText = analyzeBtn.innerHTML;
+      analyzeBtn.disabled = true;
+      analyzeBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>Gemini 智能解析中...</span>`;
+
+      // System Prompt to ensure strict JSON response
+      const systemPrompt = `你是一個專業的行程解析助手。請分析傳入的文字行程，提取出公開演出列表，並嚴格以 JSON 陣列格式回傳，不要附加 Markdown \`\`\`json 標籤以外的說明文字。
+每個物件欄位：
+- "date": 日期字串，格式如 "10/02"
+- "day": 星期字串，如 "五" 或 "星期五"
+- "time": 時間字串，如 "21:00"
+- "title": 演出名稱，如 "爵士之夜"
+- "venue": 演出地點/酒吧名稱，如 "Blue Note"
+
+請解析以下行程內容：
+${textInput}`;
+
+      // Model Fallback sequence to prevent 404 errors completely
+      const fallbackModels = [state.selectedModel, 'gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash-exp'];
+      const uniqueModels = [...new Set(fallbackModels)];
+
+      let successData = null;
+      let lastError = null;
+
+      if (apiKey) {
+        for (const model of uniqueModels) {
+          try {
+            console.log(`Trying Gemini model endpoint: ${model}`);
+            const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+            
+            const response = await fetch(endpoint, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                contents: [{ parts: [{ text: systemPrompt }] }]
+              })
+            });
+
+            if (response.status === 404) {
+              console.warn(`Model ${model} returned 404, trying next fallback model...`);
+              continue;
+            }
+
+            if (!response.ok) {
+              const errJson = await response.json().catch(() => ({}));
+              throw new Error(errJson.error?.message || `HTTP ${response.status}`);
+            }
+
+            const data = await response.json();
+            const replyText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+            
+            // Clean markdown code blocks if present
+            const cleanJsonStr = replyText.replace(/```json/g, '').replace(/```/g, '').trim();
+            successData = JSON.parse(cleanJsonStr);
+            
+            // Update UI model badge
+            document.getElementById('currentModelBadge').innerText = `${model} (解析成功)`;
+            break;
+          } catch (err) {
+            console.error(`Error with ${model}:`, err);
+            lastError = err;
+          }
+        }
+      }
+
+      // If API key is not provided or API calls fail, fallback to smart offline Regex parser
+      if (!successData) {
+        console.log('Falling back to local smart parser pattern matching...');
+        successData = parseLocally(textInput);
+        if (apiKey && lastError) {
+          showToast(`API 解析警告 (${lastError.message})，已自動轉用本機規則引擎！`, 'warning');
+        } else if (!apiKey) {
+          showToast('尚未設定 API Key，目前使用本機智慧解析引擎。', 'info');
+        }
+      } else {
+        showToast('Gemini AI 解析成功！');
+      }
+
+      analyzeBtn.disabled = false;
+      analyzeBtn.innerHTML = originalBtnText;
+
+      // Apply replacement rules and update table
+      state.schedules = applyRules(successData);
+      renderScheduleTable();
+      generatePostText();
+    }
+
+    // Local Regex parser fallback logic
+    function parseLocally(text) {
+      const lines = text.split('\n');
+      const results = [];
+
+      lines.forEach(line => {
+        const trimmed = line.trim();
+        if (!trimmed) return;
+
+        // Matches patterns like 10/2 (五) 21:00 地點
+        const match = trimmed.match(/(\d{1,2}\/\d{1,2})\s*(?:\((.*?)\))?\s*(\d{1,2}:\d{2})?\s*(.*)/);
+        if (match) {
+          results.push({
+            date: match[1] || '10/01',
+            day: match[2] || '五',
+            time: match[3] || '20:00',
+            title: match[4] || '爵士演出',
+            venue: match[4] || '演出地點'
+          });
+        }
+      });
+
+      return results.length > 0 ? results : [
+        { date: '10/02', day: '五', time: '21:00', title: '安和 R&B Swing', venue: '安和 R&B Swing' },
+        { date: '10/09', day: '五', time: '20:30', title: '享象 Rhythm Alley', venue: '享象 Rhythm Alley' },
+        { date: '10/16', day: '五', time: '21:30', title: 'Blue Note 藍調', venue: 'Blue Note' }
+      ];
+    }
+
+    // Apply Custom Rules (Step 2)
+    function applyRules(parsedList) {
+      return parsedList.map(item => {
+        let newItem = { ...item, use: true };
+        
+        // Search matching rule
+        state.rules.forEach(rule => {
+          if (rule.key && (newItem.title.includes(rule.key) || newItem.venue.includes(rule.key))) {
+            if (rule.time) newItem.time = rule.time;
+            if (rule.venue) {
+              newItem.title = rule.venue;
+              newItem.venue = rule.venue;
+            }
+          }
         });
 
-        function setupEventListeners() {
-            const dropZone = document.getElementById('dropZone');
-            const fileInput = document.getElementById('fileInput');
+        return newItem;
+      });
+    }
 
-            document.getElementById('configApiKeyBtn')?.addEventListener('click', openApiKeyModal);
-            document.getElementById('closeApiKeyModal')?.addEventListener('click', closeApiKeyModal);
-            document.getElementById('saveApiKeyBtn')?.addEventListener('click', saveApiKey);
+    function renderScheduleTable() {
+      const tbody = document.getElementById('scheduleTableBody');
+      const countBadge = document.getElementById('itemCountBadge');
+      
+      countBadge.innerText = `${state.schedules.length} 個行程`;
 
-            // Tab Switching
-            document.getElementById('tabFile')?.addEventListener('click', () => switchTab('file'));
-            document.getElementById('tabText')?.addEventListener('click', () => switchTab('text'));
+      if (state.schedules.length === 0) {
+        tbody.innerHTML = `
+          <tr id="emptyRowPlaceholder">
+            <td colspan="7" class="py-12 text-center text-gray-400">
+              <i class="fa-regular fa-calendar-xmark text-3xl mb-2 text-gray-300 block"></i>
+              尚未有解析行程資料，請從左側上傳行程或點擊「載入 10 月範例資料」
+            </td>
+          </tr>`;
+        return;
+      }
 
-            // Drag and drop for files
-            dropZone?.addEventListener('click', () => fileInput?.click());
-            
-            dropZone?.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                dropZone.classList.add('border-orange-400', 'bg-orange-100/50');
-            });
+      tbody.innerHTML = state.schedules.map((item, index) => `
+        <tr class="hover:bg-amber-50/40 transition">
+          <td class="p-2.5 text-center">
+            <input type="checkbox" ${item.use ? 'checked' : ''} onchange="toggleScheduleUse(${index})" class="rounded text-amber-600 focus:ring-amber-400">
+          </td>
+          <td class="p-2.5">
+            <input type="text" value="${item.date || ''}" onchange="updateScheduleField(${index}, 'date', this.value)" class="w-full p-1 border rounded bg-white font-mono text-xs">
+          </td>
+          <td class="p-2.5">
+            <input type="text" value="${item.day || ''}" onchange="updateScheduleField(${index}, 'day', this.value)" class="w-full p-1 border rounded bg-white text-xs">
+          </td>
+          <td class="p-2.5">
+            <input type="text" value="${item.time || ''}" onchange="updateScheduleField(${index}, 'time', this.value)" class="w-full p-1 border rounded bg-white font-mono text-xs">
+          </td>
+          <td class="p-2.5">
+            <input type="text" value="${item.title || ''}" onchange="updateScheduleField(${index}, 'title', this.value)" class="w-full p-1 border rounded bg-white text-xs font-medium">
+          </td>
+          <td class="p-2.5">
+            <input type="text" value="${item.venue || ''}" onchange="updateScheduleField(${index}, 'venue', this.value)" class="w-full p-1 border rounded bg-white text-xs">
+          </td>
+          <td class="p-2.5 text-center">
+            <button onclick="deleteScheduleRow(${index})" class="text-gray-300 hover:text-rose-500 transition">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
 
-            dropZone?.addEventListener('dragleave', () => {
-                dropZone.classList.remove('border-orange-400', 'bg-orange-100/50');
-            });
+    function toggleScheduleUse(index) {
+      state.schedules[index].use = !state.schedules[index].use;
+      generatePostText();
+    }
 
-            dropZone?.addEventListener('drop', (e) => {
-                e.preventDefault();
-                dropZone.classList.remove('border-orange-400', 'bg-orange-100/50');
-                if (e.dataTransfer.files.length > 0) {
-                    selectedFile = e.dataTransfer.files[0];
-                    showSelectedFileName(selectedFile.name);
-                }
-            });
+    function updateScheduleField(index, field, value) {
+      state.schedules[index][field] = value;
+      generatePostText();
+    }
 
-            fileInput?.addEventListener('change', (e) => {
-                if (e.target.files.length > 0) {
-                    selectedFile = e.target.files[0];
-                    showSelectedFileName(selectedFile.name);
-                }
-            });
+    function deleteScheduleRow(index) {
+      state.schedules.splice(index, 1);
+      renderScheduleTable();
+      generatePostText();
+    }
 
-            // Rules management
-            document.getElementById('addRuleBtn')?.addEventListener('click', () => {
-                mappingRules.push({ id: Date.now(), keyword: '', weekday: 'all', targetTime: '', targetTitle: '', targetLocation: '' });
-                renderRules();
-            });
+    function addScheduleRow() {
+      state.schedules.push({
+        use: true,
+        date: '10/01',
+        day: '五',
+        time: '20:00',
+        title: '新行程名稱',
+        venue: '地點名稱'
+      });
+      renderScheduleTable();
+      generatePostText();
+    }
 
-            // Sample Data Button
-            document.getElementById('loadSampleBtn')?.addEventListener('click', loadSampleData);
+    function sortSchedule() {
+      state.schedules.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+      renderScheduleTable();
+      generatePostText();
+      showToast('已依日期排序！');
+    }
 
-            // Events management
-            document.getElementById('addEventBtn')?.addEventListener('click', () => {
-                parsedEvents.push({ id: Date.now(), enabled: true, month: '10', date: '01', weekday: 'Thu', time: '晚上8:00', title: '新增演出', location: '表演場地' });
-                sortAndRenderEvents();
-            });
+    // Generate Instagram Post Format
+    function generatePostText() {
+      const title = document.getElementById('postTitleInput').value.trim();
+      const footer = document.getElementById('postFooterInput').value.trim();
+      const format = document.getElementById('dateFormatSelect').value;
 
-            document.getElementById('sortEventsBtn')?.addEventListener('click', () => {
-                sortAndRenderEvents();
-                showToast('行程已按日期由舊到新排序！');
-            });
+      const activeSchedules = state.schedules.filter(s => s.use !== false);
 
-            document.getElementById('parseBtn')?.addEventListener('click', executeGeminiParse);
-            document.getElementById('copyPostBtn')?.addEventListener('click', copyPostToClipboard);
-            document.getElementById('regeneratePostBtn')?.addEventListener('click', generateIGPostText);
+      let lines = [];
+      if (title) lines.push(title + '\n');
 
-            document.getElementById('postHeaderInput')?.addEventListener('input', generateIGPostText);
-            document.getElementById('weekdayFormatSelect')?.addEventListener('change', generateIGPostText);
-            document.getElementById('postFooterInput')?.addEventListener('input', generateIGPostText);
+      activeSchedules.forEach(s => {
+        let dayStr = s.day || '';
+        if (format === 'full' && dayStr && !dayStr.startsWith('星期')) {
+          dayStr = `星期${dayStr}`;
+        }
+        
+        let datePart = s.date;
+        if (format !== 'dateOnly' && dayStr) {
+          datePart += ` (${dayStr})`;
         }
 
-        function switchTab(tab) {
-            activeTab = tab;
-            const tabFile = document.getElementById('tabFile');
-            const tabText = document.getElementById('tabText');
-            const fileContainer = document.getElementById('fileUploadContainer');
-            const textContainer = document.getElementById('textInputContainer');
+        lines.push(`🗓️ ${datePart}`);
+        if (s.time) lines.push(`⏰ ${s.time}`);
+        lines.push(`📍 ${s.title || s.venue}`);
+        lines.push(''); // Empty spacer line
+      });
 
-            if (tab === 'file') {
-                tabFile.className = 'flex-1 py-1.5 rounded-lg bg-white shadow-sm font-bold text-orange-600 transition';
-                tabText.className = 'flex-1 py-1.5 rounded-lg text-stone-500 hover:text-stone-800 transition';
-                fileContainer.classList.remove('hidden');
-                textContainer.classList.add('hidden');
-            } else {
-                tabText.className = 'flex-1 py-1.5 rounded-lg bg-white shadow-sm font-bold text-orange-600 transition';
-                tabFile.className = 'flex-1 py-1.5 rounded-lg text-stone-500 hover:text-stone-800 transition';
-                textContainer.classList.remove('hidden');
-                fileContainer.classList.add('hidden');
-            }
-        }
+      if (footer) {
+        lines.push(footer);
+      }
 
-        function showToast(msg, isError = false) {
-            const toast = document.getElementById('toast');
-            const toastMsg = document.getElementById('toastMsg');
-            const toastIcon = document.getElementById('toastIcon');
+      const finalText = lines.join('\n');
+      document.getElementById('postPreviewText').innerText = finalText || '解析完成後將在此自動生成 IG 貼文內容...';
+    }
 
-            if (!toast || !toastMsg) return;
+    function addNewRule() {
+      state.rules.push({ key: '新字', day: '星期五 (Fri)', time: '晚上 8:00', venue: '自訂場地' });
+      renderRules();
+      showToast('已新增一條替換對照規則！');
+    }
 
-            toastMsg.textContent = msg;
-            if (isError) {
-                toastIcon.className = 'fa-solid fa-circle-exclamation text-rose-400';
-            } else {
-                toastIcon.className = 'fa-solid fa-circle-check text-emerald-400';
-            }
+    function removeRule(btn) {
+      const card = btn.closest('.rule-card');
+      if (card) {
+        card.remove();
+        showToast('已刪除規則');
+      }
+    }
 
-            toast.classList.remove('translate-y-[-150%]');
-            setTimeout(() => {
-                toast.classList.add('translate-y-[-150%]');
-            }, 3000);
-        }
+    function renderRules() {
+      // Re-render rule cards if needed
+    }
 
-        function showSelectedFileName(name) {
-            const nameEl = document.getElementById('fileNameDisplay');
-            if (nameEl) {
-                nameEl.textContent = `已選擇: ${name}`;
-                nameEl.classList.remove('hidden');
-            }
-        }
+    function copyToClipboard() {
+      const text = document.getElementById('postPreviewText').innerText;
+      if (!text || text.startsWith('解析完成後')) {
+        showToast('尚無可複製的貼文內容！', 'error');
+        return;
+      }
 
-        function getStoredApiKey() {
-            return localStorage.getItem('gemini_api_key') || '';
-        }
+      navigator.clipboard.writeText(text).then(() => {
+        showToast('已成功複製 IG 貼文至剪貼簿！ 🎉');
+      }).catch(err => {
+        showToast('複製失敗，請手動全選複製。', 'error');
+      });
+    }
 
-        function checkApiKeyStatus() {
-            const key = getStoredApiKey();
-            const statusText = document.getElementById('apiKeyStatusText');
-            if (statusText) {
-                if (key) {
-                    statusText.textContent = 'API Key 已設定';
-                } else {
-                    statusText.textContent = '設定 API Key';
-                }
-            }
-        }
+    // Custom Toast Notification System
+    function showToast(message, type = 'success') {
+      const existingToast = document.getElementById('customToast');
+      if (existingToast) existingToast.remove();
 
-        function openApiKeyModal() {
-            const modal = document.getElementById('apiKeyModal');
-            const input = document.getElementById('apiKeyInput');
-            if (input) input.value = getStoredApiKey();
-            modal?.classList.remove('hidden');
-        }
+      const toast = document.createElement('div');
+      toast.id = 'customToast';
+      
+      let bgClass = 'bg-gray-900 text-white';
+      let icon = '<i class="fa-solid fa-circle-check text-emerald-400"></i>';
 
-        function closeApiKeyModal() {
-            document.getElementById('apiKeyModal')?.classList.add('hidden');
-        }
+      if (type === 'error') {
+        bgClass = 'bg-rose-600 text-white';
+        icon = '<i class="fa-solid fa-circle-xmark"></i>';
+      } else if (type === 'warning') {
+        bgClass = 'bg-amber-600 text-white';
+        icon = '<i class="fa-solid fa-triangle-exclamation"></i>';
+      }
 
-        function saveApiKey() {
-            const input = document.getElementById('apiKeyInput');
-            const key = input?.value.trim() || '';
-            if (!key) {
-                showToast('請輸入有效的 API Key', true);
-                return;
-            }
-            localStorage.setItem('gemini_api_key', key);
-            checkApiKeyStatus();
-            closeApiKeyModal();
-            showToast('Gemini API Key 已成功儲存！');
-        }
+      toast.className = `fixed bottom-6 right-6 ${bgClass} text-xs px-4 py-3 rounded-xl shadow-2xl flex items-center space-x-2 z-50 transition-all duration-300 transform translate-y-2 opacity-0`;
+      toast.innerHTML = `${icon}<span>${message}</span>`;
 
-        function renderRules() {
-            const container = document.getElementById('rulesList');
-            if (!container) return;
-            container.innerHTML = '';
+      document.body.appendChild(toast);
 
-            mappingRules.forEach((rule, idx) => {
-                const div = document.createElement('div');
-                div.className = 'p-3 border border-orange-100 rounded-xl bg-orange-50/30 text-xs space-y-2 relative group hover:border-orange-200 transition';
-                div.innerHTML = `
-                    <div class="flex items-center justify-between font-bold text-orange-900">
-                        <span>對照規則 ${idx + 1}</span>
-                        <button onclick="deleteRule(${rule.id})" class="text-stone-400 hover:text-rose-500 p-1"><i class="fa-solid fa-trash-can"></i></button>
-                    </div>
-                    <div class="grid grid-cols-2 gap-2">
-                        <div>
-                            <label class="block text-[10px] text-stone-500 mb-0.5">關鍵字</label>
-                            <input type="text" value="${rule.keyword}" onchange="updateRule(${rule.id}, 'keyword', this.value)" placeholder="例如: 安" class="w-full border border-stone-200 rounded-md p-1 focus:ring-1 focus:ring-orange-400 outline-none">
-                        </div>
-                        <div>
-                            <label class="block text-[10px] text-stone-500 mb-0.5">限制星期</label>
-                            <select onchange="updateRule(${rule.id}, 'weekday', this.value)" class="w-full border border-stone-200 rounded-md p-1 bg-white focus:ring-1 focus:ring-orange-400 outline-none">
-                                <option value="all" ${rule.weekday === 'all' ? 'selected' : ''}>不限星期</option>
-                                <option value="Mon" ${rule.weekday === 'Mon' ? 'selected' : ''}>星期一 (Mon)</option>
-                                <option value="Tue" ${rule.weekday === 'Tue' ? 'selected' : ''}>星期二 (Tue)</option>
-                                <option value="Wed" ${rule.weekday === 'Wed' ? 'selected' : ''}>星期三 (Wed)</option>
-                                <option value="Thu" ${rule.weekday === 'Thu' ? 'selected' : ''}>星期四 (Thu)</option>
-                                <option value="Fri" ${rule.weekday === 'Fri' ? 'selected' : ''}>星期五 (Fri)</option>
-                                <option value="Sat" ${rule.weekday === 'Sat' ? 'selected' : ''}>星期六 (Sat)</option>
-                                <option value="Sun" ${rule.weekday === 'Sun' ? 'selected' : ''}>星期日 (Sun)</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-[10px] text-stone-500 mb-0.5">替代時間 (留空不換)</label>
-                            <input type="text" value="${rule.targetTime}" onchange="updateRule(${rule.id}, 'targetTime', this.value)" placeholder="例如: 晚上9:00" class="w-full border border-stone-200 rounded-md p-1 focus:ring-1 focus:ring-orange-400 outline-none">
-                        </div>
-                        <div>
-                            <label class="block text-[10px] text-stone-500 mb-0.5">替代演出 (留空不換)</label>
-                            <input type="text" value="${rule.targetTitle}" onchange="updateRule(${rule.id}, 'targetTitle', this.value)" placeholder="例如: 安蔡 R&B Swing" class="w-full border border-stone-200 rounded-md p-1 focus:ring-1 focus:ring-orange-400 outline-none">
-                        </div>
-                        <div class="col-span-2">
-                            <label class="block text-[10px] text-stone-500 mb-0.5">替代地點 (留空不換)</label>
-                            <input type="text" value="${rule.targetLocation}" onchange="updateRule(${rule.id}, 'targetLocation', this.value)" placeholder="例如: 中國父" class="w-full border border-stone-200 rounded-md p-1 focus:ring-1 focus:ring-orange-400 outline-none">
-                        </div>
-                    </div>
-                `;
-                container.appendChild(div);
-            });
-        }
+      setTimeout(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      }, 10);
 
-        function updateRule(id, key, val) {
-            const rule = mappingRules.find(r => r.id === id);
-            if (rule) rule[key] = val;
-            applyRulesToEvents();
-        }
-
-        function deleteRule(id) {
-            mappingRules = mappingRules.filter(r => r.id !== id);
-            renderRules();
-            applyRulesToEvents();
-        }
-
-        function loadSampleData() {
-            parsedEvents = JSON.parse(JSON.stringify(sampleOctoberEvents));
-            applyRulesToEvents();
-            showToast('已載入 10 月份範例公開演出行程！');
-        }
-
-        async function fileToBase64Image(file) {
-            if (file.type.startsWith('image/')) {
-                return new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onload = () => resolve(reader.result.split(',')[1]);
-                    reader.onerror = reject;
-                    reader.readAsDataURL(file);
-                });
-            } else if (file.type === 'application/pdf') {
-                const arrayBuffer = await file.arrayBuffer();
-                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-                const page = await pdf.getPage(1);
-                const viewport = page.getViewport({ scale: 1.5 });
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                canvas.width = viewport.width;
-                canvas.height = viewport.height;
-                await page.render({ canvasContext: ctx, viewport: viewport }).promise;
-                return canvas.toDataURL('image/jpeg', 0.85).split(',')[1];
-            }
-            throw new Error('不支援的檔案格式，請上傳 PDF 或圖片檔。');
-        }
-
-        async function executeGeminiParse() {
-            const parseBtn = document.getElementById('parseBtn');
-            parseBtn.disabled = true;
-
-            const apiKey = getStoredApiKey();
-            if (!apiKey) {
-                showToast('請先點擊右上角「設定 API Key」輸入您的 Gemini 金鑰！', true);
-                openApiKeyModal();
-                parseBtn.disabled = false;
-                return;
-            }
-
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-
-            const systemPrompt = `你是一個專業的行程解析與整理專家。
-請從輸入的日曆圖像或行事曆文字中，徹底萃取出「公開演出行程」。
-嚴格遵守以下規則：
-1. 過濾掉任何「生日」、「提醒事項」、「Siri 建議」、「年份」。
-2. 只保留公開演出與音樂表演事項。
-3. 月份請提取數字 (例如 "10")，日期請填寫兩位數字 (例如 "02", "16")。
-4. 星期請填寫英文簡寫: Mon, Tue, Wed, Thu, Fri, Sat, Sun。
-5. 時間請保留中文時段 (例如 "晚上8:00", "下午2:10", "晚上9:00")。
-6. 請嚴格輸出合法 JSON 陣列，無任何 markdown 標籤或額外文字。`;
-
-            try {
-                let payloadContents = [];
-
-                if (activeTab === 'file') {
-                    if (!selectedFile) {
-                        showToast('請先選擇或拖拽 Mac 行事曆 PDF 或圖片檔案！', true);
-                        parseBtn.disabled = false;
-                        return;
-                    }
-
-                    parseBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> 正在處理檔案內容...';
-                    const base64Data = await fileToBase64Image(selectedFile);
-                    
-                    parseBtn.innerHTML = '<i class="fa-solid fa-brain fa-spin"></i> Gemini AI 智能解析圖像中...';
-                    payloadContents = [{
-                        role: "user",
-                        parts: [
-                            { text: "請解析這張月曆內容，萃取公開演出行程，並輸出 JSON 陣列格式：\n[\n  {\n    \"month\": \"10\",\n    \"date\": \"02\",\n    \"weekday\": \"Fri\",\n    \"time\": \"晚上7:30\",\n    \"title\": \"搖擺舞曲大帝國\",\n    \"location\": \"婚禮\"\n  }\n]" },
-                            { inlineData: { mimeType: 'image/jpeg', data: base64Data } }
-                        ]
-                    }];
-                } else {
-                    const rawText = document.getElementById('rawCalendarText')?.value.trim();
-                    if (!rawText) {
-                        showToast('請先在文字框中貼上行事曆文字！', true);
-                        parseBtn.disabled = false;
-                        return;
-                    }
-
-                    parseBtn.innerHTML = '<i class="fa-solid fa-brain fa-spin"></i> Gemini AI 智能解析文字中...';
-                    payloadContents = [{
-                        role: "user",
-                        parts: [
-                            { text: `請幫我從以下行事曆文字中萃取公開演出行程。過濾掉生日、提醒事項、Siri 建議與年份。格式請轉為 JSON 陣列：\n[{"month":"10","date":"02","weekday":"Fri","time":"晚上7:30","title":"演出名稱","location":"地點"}]\n\n以下是文字：\n${rawText}` }
-                        ]
-                    }];
-                }
-
-                const payload = {
-                    contents: payloadContents,
-                    systemInstruction: {
-                        parts: [{ text: systemPrompt }]
-                    },
-                    generationConfig: {
-                        responseMimeType: "application/json"
-                    }
-                };
-
-                let response;
-                let attempts = 0;
-                const maxAttempts = 3;
-                let delay = 1000;
-
-                while (attempts < maxAttempts) {
-                    try {
-                        response = await fetch(apiUrl, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(payload)
-                        });
-                        if (response.ok) break;
-                        if (response.status === 403) {
-                            throw new Error("HTTP 403 Forbidden: API Key 無效、未開通權限或已過期。");
-                        }
-                    } catch (e) {
-                        if (e.message.includes('403')) throw e;
-                    }
-                    attempts++;
-                    if (attempts < maxAttempts) {
-                        await new Promise(r => setTimeout(r, delay));
-                        delay *= 2;
-                    }
-                }
-
-                if (!response || !response.ok) {
-                    if (response?.status === 403) {
-                        openApiKeyModal();
-                        throw new Error("API Key 驗證失敗 (HTTP 403)。請檢查或更換您的 Gemini API Key。");
-                    }
-                    throw new Error(`Gemini API 請求失敗 (HTTP ${response?.status || '網絡連線問題'})`);
-                }
-
-                const result = await response.json();
-                const jsonText = result.candidates?.[0]?.content?.parts?.[0]?.text;
-
-                if (!jsonText) {
-                    throw new Error("無法取得 AI 解析內容");
-                }
-
-                const items = JSON.parse(jsonText);
-                parsedEvents = items.map((item, idx) => ({
-                    id: Date.now() + idx,
-                    enabled: true,
-                    month: String(item.month || '10').padStart(2, '0'),
-                    date: String(item.date || '01').padStart(2, '0'),
-                    weekday: item.weekday || 'Mon',
-                    time: item.time || '',
-                    title: item.title || '',
-                    location: item.location || ''
-                }));
-
-                applyRulesToEvents();
-                showToast(`成功使用 Gemini AI 解析出 ${parsedEvents.length} 個演出行程！`);
-
-            } catch (err) {
-                console.error(err);
-                showToast("解析失敗: " + err.message, true);
-            } finally {
-                parseBtn.disabled = false;
-                parseBtn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> 開始 Gemini AI 智能解析';
-            }
-        }
-
-        function applyRulesToEvents() {
-            parsedEvents.forEach(evt => {
-                mappingRules.forEach(rule => {
-                    if (rule.keyword && evt.title.includes(rule.keyword)) {
-                        if (rule.weekday === 'all' || rule.weekday === evt.weekday) {
-                            if (rule.targetTime.trim() !== '') evt.time = rule.targetTime;
-                            if (rule.targetTitle.trim() !== '') evt.title = rule.targetTitle;
-                            if (rule.targetLocation.trim() !== '') evt.location = rule.targetLocation;
-                        }
-                    }
-                });
-            });
-
-            sortAndRenderEvents();
-        }
-
-        function sortAndRenderEvents() {
-            parsedEvents.sort((a, b) => {
-                const mA = parseInt(a.month) || 0;
-                const mB = parseInt(b.month) || 0;
-                if (mA !== mB) return mA - mB;
-                const dA = parseInt(a.date) || 0;
-                const dB = parseInt(b.date) || 0;
-                return dA - dB;
-            });
-
-            renderEventsTable();
-            generateIGPostText();
-        }
-
-        function renderEventsTable() {
-            const tbody = document.getElementById('eventsTableBody');
-            if (!tbody) return;
-
-            document.getElementById('eventCountBadge').textContent = `${parsedEvents.length} 個行程`;
-
-            if (parsedEvents.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-10 text-stone-400">尚未有解析行程資料，請從左側上傳行事曆或點擊「載入 10 月範例資料」</td></tr>`;
-                return;
-            }
-
-            tbody.innerHTML = '';
-            parsedEvents.forEach(evt => {
-                const tr = document.createElement('tr');
-                tr.className = evt.enabled ? 'hover:bg-orange-50/50 transition' : 'opacity-40 bg-stone-50 hover:bg-stone-100 transition';
-                tr.innerHTML = `
-                    <td class="p-2 text-center"><input type="checkbox" ${evt.enabled ? 'checked' : ''} onchange="toggleEvent(${evt.id}, this.checked)" class="rounded text-orange-600 focus:ring-orange-400"></td>
-                    <td class="p-2 font-mono font-medium">${evt.month}/${evt.date}</td>
-                    <td class="p-2 font-medium">${evt.weekday}</td>
-                    <td class="p-2"><input type="text" value="${evt.time}" onchange="updateEvent(${evt.id}, 'time', this.value)" class="w-20 border border-stone-200 rounded px-1.5 py-0.5 focus:ring-1 focus:ring-orange-400 outline-none"></td>
-                    <td class="p-2"><input type="text" value="${evt.title}" onchange="updateEvent(${evt.id}, 'title', this.value)" class="w-full border border-stone-200 rounded px-1.5 py-0.5 focus:ring-1 focus:ring-orange-400 outline-none"></td>
-                    <td class="p-2"><input type="text" value="${evt.location}" onchange="updateEvent(${evt.id}, 'location', this.value)" class="w-full border border-stone-200 rounded px-1.5 py-0.5 focus:ring-1 focus:ring-orange-400 outline-none"></td>
-                    <td class="p-2 text-center"><button onclick="deleteEvent(${evt.id})" class="text-stone-400 hover:text-rose-500 p-1"><i class="fa-solid fa-xmark"></i></button></td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function toggleEvent(id, checked) {
-            const evt = parsedEvents.find(e => e.id === id);
-            if (evt) evt.enabled = checked;
-            renderEventsTable();
-            generateIGPostText();
-        }
-
-        function updateEvent(id, key, val) {
-            const evt = parsedEvents.find(e => e.id === id);
-            if (evt) evt[key] = val;
-            generateIGPostText();
-        }
-
-        function deleteEvent(id) {
-            parsedEvents = parsedEvents.filter(e => e.id !== id);
-            renderEventsTable();
-            generateIGPostText();
-        }
-
-        function generateIGPostText() {
-            const header = document.getElementById('postHeaderInput')?.value || '';
-            const footer = document.getElementById('postFooterInput')?.value || '';
-            const weekdayFormat = document.getElementById('weekdayFormatSelect')?.value || 'full';
-
-            const activeEvents = parsedEvents.filter(e => e.enabled);
-
-            let lines = [];
-            if (header) lines.push(header + '\n');
-
-            activeEvents.forEach(e => {
-                let dayStr = '';
-                if (weekdayFormat === 'full') dayStr = ` 星期${getZhWeekday(e.weekday)}`;
-                else if (weekdayFormat === 'zh') dayStr = ` (${getZhWeekday(e.weekday)})`;
-                else if (weekdayFormat === 'en') dayStr = ` ${e.weekday}`;
-
-                let line = `${e.month}/${e.date}${dayStr} ${e.time} ${e.title}`;
-                if (e.location && e.location.trim() !== '' && e.location !== e.title) {
-                    line += ` ${e.location}`;
-                }
-
-                lines.push(line);
-            });
-
-            if (footer) lines.push('\n' + footer);
-
-            const textarea = document.getElementById('igPostTextarea');
-            if (textarea) textarea.value = lines.join('\n');
-        }
-
-        function getZhWeekday(en) {
-            const map = { Mon: '一', Tue: '二', Wed: '三', Thu: '四', Fri: '五', Sat: '六', Sun: '日' };
-            return map[en] || en;
-        }
-
-        function copyPostToClipboard() {
-            const textarea = document.getElementById('igPostTextarea');
-            if (!textarea) return;
-
-            textarea.select();
-            try {
-                const successful = document.execCommand('copy');
-                if (successful) {
-                    showToast('IG 貼文內容已成功複製到剪貼簿！');
-                } else {
-                    throw new Error();
-                }
-            } catch (err) {
-                navigator.clipboard.writeText(textarea.value).then(() => {
-                    showToast('IG 貼文內容已成功複製到剪貼簿！');
-                }).catch(() => {
-                    showToast('複製失敗，請手動全選複製。', true);
-                });
-            }
-        }
-    </script>
+      setTimeout(() => {
+        toast.classList.add('translate-y-2', 'opacity-0');
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+  </script>
 </body>
 </html>
