@@ -65,7 +65,6 @@
 </head>
 <body class="min-h-screen pb-16 flex flex-col justify-between">
 
-    <!-- Toast Notification Banner -->
     <div id="toast" class="fixed top-5 right-5 z-50 transform translate-y-[-150%] transition-transform duration-300 ease-in-out bg-stone-900 text-white px-5 py-3 rounded-xl shadow-2xl flex items-center gap-3 text-sm font-medium border border-stone-700">
         <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400"></i>
         <span id="toastMsg">通知訊息</span>
@@ -91,7 +90,7 @@
                 <div class="flex items-center space-x-2">
                     <span class="bg-amber-100/80 text-amber-800 border border-amber-200 text-xs px-3 py-1.5 rounded-full font-medium flex items-center gap-1.5 shadow-sm">
                         <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                        Gemini 3 Flash AI
+                        Gemini AI 智能驅動
                     </span>
                 </div>
             </div>
@@ -99,7 +98,6 @@
 
         <main class="max-w-6xl mx-auto px-4 mt-6">
             
-            <!-- Hero Title Banner -->
             <div class="bg-gradient-to-r from-orange-50 via-amber-50 to-orange-50 border border-orange-200/80 rounded-2xl p-5 mb-6 shadow-sm">
                 <div class="flex items-start space-x-4">
                     <div class="ig-avatar-ring w-14 h-14 md:w-16 md:h-16 flex-shrink-0 mt-1 shadow-md">
@@ -129,7 +127,6 @@
                 <!-- Left Column: Input & Rules (Block 1 & 2) -->
                 <div class="lg:col-span-5 space-y-6">
                     
-                    <!-- Step 1: Upload / Input Card -->
                     <div class="bg-white border border-orange-100 rounded-2xl p-5 shadow-sm">
                         <div class="flex items-center justify-between mb-4">
                             <div class="flex items-center space-x-2">
@@ -171,7 +168,6 @@
                         </button>
                     </div>
 
-                    <!-- Step 2: Custom Rules Card -->
                     <div class="bg-white border border-orange-100 rounded-2xl p-5 shadow-sm">
                         <div class="flex items-center justify-between mb-3">
                             <div class="flex items-center space-x-2">
@@ -188,7 +184,7 @@
                         </p>
 
                         <div id="rulesList" class="space-y-3 max-h-80 overflow-y-auto pr-1">
-                            <!-- Dynamic Rule Item Components -->
+                            <!-- Dynamic Rule Items -->
                         </div>
                     </div>
 
@@ -197,7 +193,6 @@
                 <!-- Right Column: Results Table & IG Post Preview (Block 3 & 4) -->
                 <div class="lg:col-span-7 space-y-6">
 
-                    <!-- Step 3: Schedule Items Table -->
                     <div class="bg-white border border-orange-100 rounded-2xl p-5 shadow-sm">
                         <div class="flex items-center justify-between mb-4">
                             <div class="flex items-center space-x-2">
@@ -239,7 +234,6 @@
                         </div>
                     </div>
 
-                    <!-- Step 4: IG Post Preview Card -->
                     <div class="bg-white border border-orange-100 rounded-2xl p-5 shadow-sm">
                         <div class="flex items-center justify-between border-b border-stone-100 pb-3 mb-4">
                             <div class="flex items-center space-x-2.5">
@@ -263,7 +257,7 @@
                             </div>
                         </div>
 
-                        <!-- Post Customization Options -->
+                        <!-- Customization Settings -->
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4 text-xs">
                             <div>
                                 <label class="block text-stone-600 font-medium mb-1">貼文標頭 (首行)</label>
@@ -286,7 +280,7 @@
                             </div>
                         </div>
 
-                        <!-- Instagram Dark Box Rendering -->
+                        <!-- Instagram Dark Theme Render Box -->
                         <div class="relative bg-stone-950 text-stone-100 rounded-xl p-4 shadow-inner border border-stone-800">
                             <div class="flex items-center justify-between text-stone-400 mb-3 text-xs border-b border-stone-800/80 pb-2.5">
                                 <div class="flex items-center space-x-3 text-base">
@@ -313,7 +307,6 @@
     </footer>
 
     <script>
-        // Preset Mapping Rules based on user request
         let mappingRules = [
             { id: 1, keyword: '安', weekday: 'Mon', targetTime: '晚上9:00', targetTitle: '安蔡 R&B Swing', targetLocation: '中國父' },
             { id: 2, keyword: '莫爾頓', weekday: 'all', targetTime: '晚上9:00', targetTitle: 'trio', targetLocation: '莫爾頓' },
@@ -321,7 +314,6 @@
             { id: 4, keyword: '李竺芯', weekday: 'all', targetTime: '下午2:00', targetTitle: '李竺芯', targetLocation: '台中爵士音樂節' }
         ];
 
-        // Sample extracted October events for 1-click test
         const sampleOctoberEvents = [
             { id: 101, enabled: true, month: '10', date: '02', weekday: 'Fri', time: '晚上7:30', title: '搖擺舞曲大帝國', location: '婚禮' },
             { id: 102, enabled: true, month: '10', date: '03', weekday: 'Sat', time: '晚上9:00', title: '莫爾頓', location: '莫爾頓' },
@@ -345,7 +337,7 @@
 
         let parsedEvents = [];
         let selectedFile = null;
-        let activeTab = 'file'; // 'file' or 'text'
+        let activeTab = 'file';
 
         document.addEventListener('DOMContentLoaded', () => {
             renderRules();
@@ -555,13 +547,12 @@
             throw new Error('不支援的檔案格式，請上傳 PDF 或圖片檔。');
         }
 
-        // Gemini API Execution with Backoff Retry Logic
         async function executeGeminiParse() {
             const parseBtn = document.getElementById('parseBtn');
             parseBtn.disabled = true;
 
-            const apiKey = ""; // Canvas runtime environment automatically inserts API key when empty
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+            const apiKey = ""; // API key populated by runtime environment
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
             const systemPrompt = `你是一個專業的行程解析與整理專家。
 請從輸入的日曆圖像或行事曆文字中，徹底萃取出「公開演出行程」。
@@ -571,7 +562,7 @@
 3. 月份請提取數字 (例如 "10")，日期請填寫兩位數字 (例如 "02", "16")。
 4. 星期請填寫英文簡寫: Mon, Tue, Wed, Thu, Fri, Sat, Sun。
 5. 時間請保留中文時段 (例如 "晚上8:00", "下午2:10", "晚上9:00")。
-6. 請嚴格輸出合法 JSON 陣列，無任何 markdown 標籤或說明。`;
+6. 請嚴格輸出合法 JSON 陣列，無任何 markdown 標籤或額外文字。`;
 
             try {
                 let payloadContents = [];
@@ -621,7 +612,6 @@
                     }
                 };
 
-                // Backoff Fetch
                 let response;
                 let attempts = 0;
                 const maxAttempts = 3;
@@ -636,7 +626,7 @@
                         });
                         if (response.ok) break;
                     } catch (e) {
-                        // retry
+                        // retry backoff
                     }
                     attempts++;
                     if (attempts < maxAttempts) {
@@ -646,7 +636,7 @@
                 }
 
                 if (!response || !response.ok) {
-                    throw new Error(`Gemini API 請求失敗 (HTTP status ${response?.status || 'network error'})`);
+                    throw new Error(`Gemini API 請求失敗 (HTTP ${response?.status || 'network error'})`);
                 }
 
                 const result = await response.json();
@@ -669,7 +659,7 @@
                 }));
 
                 applyRulesToEvents();
-                showToast(`成功解析 ${parsedEvents.length} 個行程！`);
+                showToast(`成功使用 Gemini AI 解析出 ${parsedEvents.length} 個演出行程！`);
 
             } catch (err) {
                 console.error(err);
@@ -697,7 +687,6 @@
         }
 
         function sortAndRenderEvents() {
-            // Sort by month then date
             parsedEvents.sort((a, b) => {
                 const mA = parseInt(a.month) || 0;
                 const mB = parseInt(b.month) || 0;
