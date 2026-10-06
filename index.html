@@ -74,7 +74,7 @@
         
         <div class="flex items-center space-x-1.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs px-3 py-1.5 rounded-full">
           <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span id="currentModelBadge">自動選擇模型</span>
+          <span id="currentModelBadge">尚未選擇 AI</span>
         </div>
       </div>
     </div>
@@ -93,10 +93,10 @@
         </p>
         <div class="mt-2 flex flex-wrap gap-2 text-xs">
           <span class="bg-amber-100/80 text-amber-800 px-2.5 py-0.5 rounded-md font-medium border border-amber-200/50">
-            <i class="fa-instagram fab mr-1 text-rose-500"></i> IG 風格排版 & Gemini AI 智能解析
+            <i class="fa-instagram fab mr-1 text-rose-500"></i> IG 風格排版 & AI 智能解析
           </span>
           <span class="bg-orange-100/80 text-orange-800 px-2.5 py-0.5 rounded-md font-medium border border-orange-200/50">
-            <i class="fa-solid fa-rotate-right mr-1 text-amber-600"></i> 自動偵測最新 Gemini 模型
+            <i class="fa-solid fa-rotate-right mr-1 text-amber-600"></i> 可切換 Gemini / Claude / ChatGPT
           </span>
         </div>
       </div>
@@ -135,9 +135,9 @@
               <span>載入 10 月範例檔測試</span>
             </button>
 
-            <button onclick="parseScheduleWithGemini()" id="analyzeBtn" class="w-full py-3 text-white font-bold text-sm rounded-xl btn-primary flex items-center justify-center space-x-2 shadow-md">
+            <button onclick="parseSchedule()" id="analyzeBtn" class="w-full py-3 text-white font-bold text-sm rounded-xl btn-primary flex items-center justify-center space-x-2 shadow-md">
               <i class="fa-solid fa-bolt"></i>
-              <span>開始 Gemini AI 智能解析檔案</span>
+              <span>開始 AI 智能解析檔案</span>
             </button>
           </div>
         </div>
@@ -304,7 +304,7 @@
       <div class="flex items-center justify-between border-b pb-3">
         <h3 class="font-bold text-gray-800 text-base flex items-center space-x-2">
           <i class="fa-solid fa-gear text-amber-600"></i>
-          <span>Gemini API 金鑰與模型設定</span>
+          <span>AI 服務與金鑰設定</span>
         </h3>
         <button onclick="closeApiModal()" class="text-gray-400 hover:text-gray-600">
           <i class="fa-solid fa-xmark text-lg"></i>
@@ -313,21 +313,28 @@
 
       <div class="space-y-3 text-xs">
         <div>
-          <label class="block font-medium text-gray-700 mb-1">Google Gemini API Key</label>
-          <input type="password" id="modalApiKeyInput" placeholder="AIzaSy..." class="w-full p-2.5 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-amber-400">
-          <p class="text-[11px] text-gray-400 mt-1">金鑰僅存於瀏覽器本機記憶體中，絕不傳輸至第三方伺服器。</p>
-        </div>
-
-        <div>
-          <label class="block font-medium text-gray-700 mb-1">主要 Gemini 模型選擇</label>
-          <select id="modalModelSelect" class="w-full p-2.5 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-amber-400">
-            <option value="auto" selected>自動選擇最新可用模型（推薦）</option>
+          <label class="block font-medium text-gray-700 mb-1">AI 服務</label>
+          <select id="modalProviderSelect" onchange="onProviderChange()" class="w-full p-2.5 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-amber-400">
+            <option value="gemini">Google Gemini（有免費額度）</option>
+            <option value="anthropic">Anthropic Claude（需付費儲值）</option>
+            <option value="openai">OpenAI ChatGPT（需付費儲值）</option>
           </select>
         </div>
 
+        <div>
+          <label id="keyLabel" class="block font-medium text-gray-700 mb-1">API Key</label>
+          <input type="password" id="modalApiKeyInput" placeholder="AIzaSy..." class="w-full p-2.5 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-amber-400">
+          <p class="text-[11px] text-gray-400 mt-1">金鑰只存在你自己的瀏覽器，解析時直接傳給所選的 AI 服務，不會經過其他伺服器。</p>
+        </div>
+
+        <div>
+          <label class="block font-medium text-gray-700 mb-1">模型名稱（選填，留空＝自動選擇）</label>
+          <input type="text" id="modalModelInput" placeholder="留空即可" class="w-full p-2.5 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-amber-400">
+        </div>
+
         <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 text-amber-800 text-[11px] space-y-1">
-          <div class="font-bold"><i class="fa-solid fa-circle-info mr-1"></i> 如何取得免費 API Key：</div>
-          <p>到 aistudio.google.com/apikey 登入 Google 帳號 → Create API key → 複製貼上即可。系統會自動向 Google 查詢目前可用的模型，不會再因舊模型下架而 404。</p>
+          <div class="font-bold"><i class="fa-solid fa-circle-info mr-1"></i> 如何取得 API Key：</div>
+          <p id="keyHelpText"></p>
         </div>
       </div>
 
@@ -340,9 +347,18 @@
 
   <script>
     // Global Application State
+    const PROVIDERS = {
+      gemini:    { label: 'Google Gemini',    placeholder: 'AIzaSy...',  help: '到 aistudio.google.com/apikey 登入 Google 帳號 → Create API key，複製貼上即可（有免費額度）。' },
+      anthropic: { label: 'Anthropic Claude', placeholder: 'sk-ant-...', help: '到 console.anthropic.com 註冊 → Settings → API Keys 建立金鑰。需先儲值少量額度才能使用。' },
+      openai:    { label: 'OpenAI ChatGPT',   placeholder: 'sk-...',     help: '到 platform.openai.com/api-keys 建立金鑰。需先儲值少量額度才能使用（與 ChatGPT 訂閱是分開的）。' }
+    };
+
+    function loadKey(provider) {
+      return localStorage.getItem('api_key_' + provider) || (provider === 'gemini' ? (localStorage.getItem('gemini_api_key') || '') : '');
+    }
+
     let state = {
-      apiKey: localStorage.getItem('gemini_api_key') || '',
-      selectedModel: (function(){ const m = localStorage.getItem('gemini_model'); return (!m || /gemini-(1\.5|2\.0)/.test(m)) ? 'auto' : m; })(),
+      provider: localStorage.getItem('ai_provider') || 'gemini',
       schedules: [],
       rules: [
         { key: '安', day: '星期五 (Fri)', time: '晚上 9:00', venue: '安和 R&B Swing' }
@@ -360,24 +376,29 @@
 
     function updateApiKeyStatus() {
       const badge = document.getElementById('apiKeyStatusText');
-      const input = document.getElementById('modalApiKeyInput');
-      const select = document.getElementById('modalModelSelect');
-      
-      if (state.apiKey) {
-        badge.innerText = 'API Key 已設定';
+      const hasKey = !!loadKey(state.provider);
+      if (hasKey) {
+        badge.innerText = `${PROVIDERS[state.provider].label} 已設定`;
         badge.classList.add('text-emerald-700', 'font-bold');
       } else {
         badge.innerText = '未設定 API Key';
         badge.classList.remove('text-emerald-700', 'font-bold');
       }
+      document.getElementById('currentModelBadge').innerText = PROVIDERS[state.provider].label;
+    }
 
-      if (input) input.value = state.apiKey;
-      if (select) select.value = state.selectedModel;
-
-      document.getElementById('currentModelBadge').innerText = state.selectedModel === 'auto' ? '自動選擇模型' : state.selectedModel;
+    function onProviderChange() {
+      const prov = document.getElementById('modalProviderSelect').value;
+      document.getElementById('keyLabel').innerText = PROVIDERS[prov].label + ' API Key';
+      document.getElementById('modalApiKeyInput').placeholder = PROVIDERS[prov].placeholder;
+      document.getElementById('modalApiKeyInput').value = loadKey(prov);
+      document.getElementById('modalModelInput').value = localStorage.getItem('model_' + prov) || '';
+      document.getElementById('keyHelpText').innerText = PROVIDERS[prov].help;
     }
 
     function openApiModal() {
+      document.getElementById('modalProviderSelect').value = state.provider;
+      onProviderChange();
       document.getElementById('apiModal').classList.remove('hidden');
     }
 
@@ -386,18 +407,16 @@
     }
 
     function saveApiSettings() {
-      const keyInput = document.getElementById('modalApiKeyInput').value.trim();
-      const modelInput = document.getElementById('modalModelSelect').value;
-      
-      state.apiKey = keyInput;
-      state.selectedModel = modelInput;
-
-      localStorage.setItem('gemini_api_key', keyInput);
-      localStorage.setItem('gemini_model', modelInput);
-
+      const prov = document.getElementById('modalProviderSelect').value;
+      const key = document.getElementById('modalApiKeyInput').value.trim();
+      const model = document.getElementById('modalModelInput').value.trim();
+      state.provider = prov;
+      localStorage.setItem('ai_provider', prov);
+      localStorage.setItem('api_key_' + prov, key);
+      localStorage.setItem('model_' + prov, model);
       updateApiKeyStatus();
       closeApiModal();
-      showToast('API Key 及模型設定已儲存！');
+      showToast(`${PROVIDERS[prov].label} 設定已儲存！`);
     }
 
     function loadDemoSchedule() {
@@ -426,7 +445,7 @@
         const nameDiv = document.getElementById('selectedFileName');
         nameDiv.innerText = `已選擇檔案：${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
         nameDiv.classList.remove('hidden');
-        showToast('檔案已就緒，請點擊「開始 Gemini AI 智能解析」');
+        showToast('檔案已就緒，請點擊「開始 AI 智能解析」');
       }
     }
 
@@ -439,55 +458,157 @@
       });
     }
 
-    // Ask Google which models this key can actually use (avoids hard-coded, retired model names)
-    async function getUsableModels(apiKey) {
-      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?pageSize=200&key=${apiKey}`);
-      if (!res.ok) {
-        const e = await res.json().catch(() => ({}));
-        throw new Error(e.error?.message || `API Key 驗證失敗 (HTTP ${res.status})，請確認金鑰是否正確`);
+    async function fetchT(url, opts, ms = 45000) {
+      const c = new AbortController();
+      const t = setTimeout(() => c.abort(), ms);
+      try {
+        return await fetch(url, { ...opts, signal: c.signal });
+      } catch (e) {
+        if (e.name === 'AbortError') throw new Error(`連線逾時（超過 ${ms / 1000} 秒）`);
+        throw e;
+      } finally {
+        clearTimeout(t);
       }
-      const data = await res.json();
-      let names = (data.models || [])
-        .filter(m => (m.supportedGenerationMethods || []).includes('generateContent'))
-        .map(m => m.name.replace('models/', ''))
-        .filter(n => /^gemini-/.test(n) && /flash/.test(n) && !/image|tts|audio|live|embed|robotics|omni|thinking|exp/.test(n));
-      // stable first, preview last; newer version numbers first; lite last
-      const ver = n => parseFloat((n.match(/gemini-(\d+(?:\.\d+)?)/) || [0, 0])[1]);
-      names.sort((a, b) => {
-        const pa = /preview/.test(a) ? 1 : 0, pb = /preview/.test(b) ? 1 : 0;
-        if (pa !== pb) return pa - pb;
-        const la = /lite/.test(a) ? 1 : 0, lb = /lite/.test(b) ? 1 : 0;
-        if (la !== lb) return la - lb;
-        return ver(b) - ver(a);
-      });
-      if (state.selectedModel !== 'auto') names.unshift(state.selectedModel);
-      names = [...new Set(names)].slice(0, 4);
-      if (names.length === 0) throw new Error('這把 API Key 找不到可用的 Gemini 模型');
+    }
+
+    async function apiError(res) {
+      const e = await res.json().catch(() => ({}));
+      return new Error(e.error?.message || e.message || `HTTP ${res.status}`);
+    }
+
+    const ANTHROPIC_HEADERS = (key) => ({
+      'x-api-key': key,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
+      'Content-Type': 'application/json'
+    });
+
+    // Ask the provider which models this key can actually use (no hard-coded model names)
+    async function getUsableModels(provider, key) {
+      const custom = localStorage.getItem('model_' + provider) || '';
+      let names = [];
+
+      if (provider === 'gemini') {
+        const res = await fetchT(`https://generativelanguage.googleapis.com/v1beta/models?pageSize=200&key=${key}`, {}, 20000);
+        if (!res.ok) throw await apiError(res);
+        const data = await res.json();
+        names = (data.models || [])
+          .filter(m => (m.supportedGenerationMethods || []).includes('generateContent'))
+          .map(m => m.name.replace('models/', ''))
+          .filter(n => /^gemini-/.test(n) && /flash/.test(n) && !/image|tts|audio|live|embed|robotics|omni|thinking|exp/.test(n));
+        const ver = n => parseFloat((n.match(/gemini-(\d+(?:\.\d+)?)/) || [0, 0])[1]);
+        names.sort((a, b) => {
+          const pa = /preview/.test(a) ? 1 : 0, pb = /preview/.test(b) ? 1 : 0;
+          if (pa !== pb) return pa - pb;
+          const la = /lite/.test(a) ? 1 : 0, lb = /lite/.test(b) ? 1 : 0;
+          if (la !== lb) return la - lb;
+          return ver(b) - ver(a);
+        });
+      } else if (provider === 'anthropic') {
+        const res = await fetchT('https://api.anthropic.com/v1/models?limit=100', { headers: ANTHROPIC_HEADERS(key) }, 20000);
+        if (!res.ok) throw await apiError(res);
+        const data = await res.json();
+        // API returns newest first; use Sonnet/Haiku (good vision, lower cost than Opus)
+        const all = (data.data || []).map(m => m.id);
+        names = [...all.filter(n => /sonnet/.test(n)), ...all.filter(n => /haiku/.test(n))];
+      } else if (provider === 'openai') {
+        const res = await fetchT('https://api.openai.com/v1/models', { headers: { Authorization: `Bearer ${key}` } }, 20000);
+        if (!res.ok) throw await apiError(res);
+        const data = await res.json();
+        names = (data.data || [])
+          .filter(m => /^gpt-/.test(m.id) && !/audio|realtime|transcribe|tts|image|search|instruct|embed|moderation|codex|chat-latest|preview|\d{4}-\d{2}-\d{2}/.test(m.id))
+          .sort((a, b) => ((/mini/.test(b.id) ? 1 : 0) - (/mini/.test(a.id) ? 1 : 0)) || (b.created - a.created))
+          .map(m => m.id);
+      }
+
+      if (custom) names.unshift(custom);
+      names = [...new Set(names)].slice(0, 3);
+      if (names.length === 0) throw new Error('這把 API Key 找不到可用的模型，請確認金鑰與帳戶額度');
       return names;
     }
 
-    async function parseScheduleWithGemini() {
-      const apiKey = state.apiKey || localStorage.getItem('gemini_api_key');
+    // Send file + prompt to the chosen provider, return raw text reply
+    async function callModel(provider, model, key, b64, mime, prompt) {
+      const isPdf = mime === 'application/pdf';
 
-      if (!apiKey) {
-        showToast('請先輸入並儲存 Gemini API Key！', 'warning');
+      if (provider === 'gemini') {
+        const res = await fetchT(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ inlineData: { mimeType: mime, data: b64 } }, { text: prompt }] }],
+            generationConfig: { responseMimeType: 'application/json' }
+          })
+        });
+        if (!res.ok) throw await apiError(res);
+        const data = await res.json();
+        return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      }
+
+      if (provider === 'anthropic') {
+        const res = await fetchT('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: ANTHROPIC_HEADERS(key),
+          body: JSON.stringify({
+            model, max_tokens: 4096,
+            messages: [{ role: 'user', content: [
+              { type: isPdf ? 'document' : 'image', source: { type: 'base64', media_type: mime, data: b64 } },
+              { type: 'text', text: prompt }
+            ] }]
+          })
+        });
+        if (!res.ok) throw await apiError(res);
+        const data = await res.json();
+        return (data.content || []).filter(c => c.type === 'text').map(c => c.text).join('');
+      }
+
+      if (provider === 'openai') {
+        const filePart = isPdf
+          ? { type: 'file', file: { filename: 'schedule.pdf', file_data: `data:application/pdf;base64,${b64}` } }
+          : { type: 'image_url', image_url: { url: `data:${mime};base64,${b64}` } };
+        const res = await fetchT('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
+          body: JSON.stringify({ model, messages: [{ role: 'user', content: [filePart, { type: 'text', text: prompt }] }] })
+        });
+        if (!res.ok) throw await apiError(res);
+        const data = await res.json();
+        return data.choices?.[0]?.message?.content || '';
+      }
+      throw new Error('未知的 AI 服務');
+    }
+
+    function extractJsonArray(text) {
+      let t = (text || '').trim().replace(/^```json\s*/i, '').replace(/^```\s*/, '').replace(/\s*```$/, '').trim();
+      try { const v = JSON.parse(t); if (Array.isArray(v)) return v; } catch (e) {}
+      const i = t.indexOf('['), j = t.lastIndexOf(']');
+      if (i !== -1 && j > i) return JSON.parse(t.slice(i, j + 1));
+      throw new Error('AI 回傳的內容不是有效的行程列表');
+    }
+
+    async function parseSchedule() {
+      const provider = state.provider;
+      const key = loadKey(provider);
+
+      if (!key) {
+        showToast(`請先設定 ${PROVIDERS[provider].label} 的 API Key！`, 'warning');
         openApiModal();
         return;
       }
-
-      if (!selectedFile && state.schedules.length === 0) {
-        showToast('請先選擇上傳行事曆 PDF/圖片，或載入範例檔！', 'warning');
+      if (!selectedFile) {
+        showToast('請先選擇要上傳的行事曆 PDF 或圖片！', 'warning');
         return;
       }
 
       const analyzeBtn = document.getElementById('analyzeBtn');
       const originalBtnText = analyzeBtn.innerHTML;
+      const setBtn = (msg) => { analyzeBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i><span>${msg}</span>`; };
       analyzeBtn.disabled = true;
-      analyzeBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i><span>Gemini AI 解析中...</span>`;
+      setBtn('正在查詢可用模型...');
 
       try {
-        const systemPrompt = `你是一個專業的行程解析助手。請分析傳入的 Mac 行事曆 PDF 或圖片內容，提取出所有公開演出與音樂活動列表。
-請嚴格以 JSON 陣列格式回傳，格式範例：
+        const prompt = `你是一個專業的行程解析助手。請分析傳入的 Mac 行事曆 PDF 或圖片內容，提取出所有公開演出與音樂活動列表。
+請嚴格以 JSON 陣列格式回傳，不要加任何說明文字，格式範例：
 [
   {
     "date": "10/02",
@@ -498,55 +619,17 @@
   }
 ]`;
 
-        let partsPayload = [];
-        if (selectedFile) {
-          const base64Data = await fileToBase64(selectedFile);
-          const mimeType = selectedFile.type || (selectedFile.name.endsWith('.pdf') ? 'application/pdf' : 'image/png');
-          partsPayload.push({
-            inlineData: {
-              mimeType: mimeType,
-              data: base64Data
-            }
-          });
-        }
-        partsPayload.push({ text: systemPrompt });
+        const b64 = await fileToBase64(selectedFile);
+        const mime = selectedFile.type || (selectedFile.name.toLowerCase().endsWith('.pdf') ? 'application/pdf' : 'image/png');
+        const models = await getUsableModels(provider, key);
 
-        const uniqueModels = await getUsableModels(apiKey);
-
-        let successData = null;
-        let lastError = null;
-
-        for (const model of uniqueModels) {
+        let result = null, lastError = null;
+        for (const model of models) {
           try {
-            console.log(`正在使用 Gemini 模型: ${model}`);
-            const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-            
-            const response = await fetch(endpoint, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                contents: [{ parts: partsPayload }],
-                generationConfig: {
-                  responseMimeType: "application/json"
-                }
-              })
-            });
-
-            if (!response.ok) {
-              const errJson = await response.json().catch(() => ({}));
-              throw new Error(errJson.error?.message || `HTTP ${response.status}`);
-            }
-
-            const data = await response.json();
-            const replyText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-            
-            // Clean markdown blocks if present
-            let cleanJsonStr = replyText.trim();
-            cleanJsonStr = cleanJsonStr.replace(/^```json\s*/i, '').replace(/^```\s*/, '').replace(/\s*```$/, '').trim();
-            
-            successData = JSON.parse(cleanJsonStr);
-            
-            document.getElementById('currentModelBadge').innerText = `${model} (解析成功)`;
+            setBtn(`${PROVIDERS[provider].label} 解析中（${model}）...`);
+            document.getElementById('currentModelBadge').innerText = model;
+            const text = await callModel(provider, model, key, b64, mime, prompt);
+            result = extractJsonArray(text);
             break;
           } catch (err) {
             console.error(`模型 ${model} 發生錯誤:`, err);
@@ -554,20 +637,21 @@
           }
         }
 
-        if (successData && Array.isArray(successData)) {
-          showToast('Gemini AI 行程解析成功！🎉');
-          state.schedules = applyRules(successData);
+        if (result) {
+          showToast('AI 行程解析成功！🎉');
+          state.schedules = applyRules(result);
           renderScheduleTable();
           generatePostText();
         } else {
-          showToast(`解析失敗：${lastError ? lastError.message : '無回應資料'}，請確認 API Key 與上傳檔案。`, 'error');
+          showToast(`解析失敗：${lastError ? lastError.message : '無回應資料'}`, 'error');
         }
       } catch (globalErr) {
-        console.error("解析過程發生異常:", globalErr);
+        console.error('解析過程發生異常:', globalErr);
         showToast(`處理失敗：${globalErr.message}`, 'error');
       } finally {
         analyzeBtn.disabled = false;
         analyzeBtn.innerHTML = originalBtnText;
+        updateApiKeyStatus();
       }
     }
 
