@@ -51,8 +51,8 @@
   <header class="bg-white border-b border-orange-100/80 sticky top-0 z-40 shadow-sm">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
       <div class="flex items-center space-x-3">
-        <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-amber-500 to-rose-500 p-0.5 shadow">
-          <img src="https://images.unsplash.com/photo-1511192336575-5a79af67a629?w=100&auto=format&fit=crop&q=80" alt="Avatar" class="w-full h-full object-cover rounded-full">
+        <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-amber-500 to-rose-500 p-0.5 shadow overflow-hidden">
+          <img src="avatar.jpg" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1511192336575-5a79af67a629?w=100&auto=format&fit=crop&q=80'" alt="Avatar" class="w-full h-full object-cover rounded-full">
         </div>
         <div>
           <div class="flex items-center space-x-2">
@@ -240,7 +240,7 @@
         <div class="bg-white rounded-2xl border border-amber-100 p-5 custom-shadow space-y-4">
           <div class="flex items-center justify-between">
             <div class="flex items-center space-x-2">
-              <img src="https://images.unsplash.com/photo-1511192336575-5a79af67a629?w=100&auto=format&fit=crop&q=80" class="w-7 h-7 rounded-full border border-rose-300">
+              <img src="avatar.jpg" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1511192336575-5a79af67a629?w=100&auto=format&fit=crop&q=80'" class="w-7 h-7 rounded-full border border-rose-300 object-cover">
               <div>
                 <h3 class="font-bold text-gray-800 text-sm">chloe_trumpet</h3>
                 <p class="text-[10px] text-gray-400">Instagram 貼文預覽模式</p>
@@ -444,28 +444,37 @@
     async function parseScheduleWithGemini() {
       const apiKey = state.apiKey || localStorage.getItem('gemini_api_key');
 
+      if (!apiKey) {
+        showToast('請先輸入並儲存 Gemini API Key！', 'warning');
+        openApiModal();
+        return;
+      }
+
       if (!selectedFile && state.schedules.length === 0) {
-        showToast('請先上傳 PDF 或圖片檔！', 'error');
+        showToast('請先選擇上傳行事曆 PDF/圖片，或載入範例檔！', 'warning');
         return;
       }
 
       const analyzeBtn = document.getElementById('analyzeBtn');
       const originalBtnText = analyzeBtn.innerHTML;
       analyzeBtn.disabled = true;
-      analyzeBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>Gemini 檔案分析中...</span>`;
+      analyzeBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i><span>Gemini AI 解析中...</span>`;
 
-      // Prompt optimized for PDF / Image schedule parsing
-      const systemPrompt = `你是一個專業的行程解析助手。請分析傳入的 Mac 行事曆 PDF/圖片內容，提取出公開演出列表，並嚴格以 JSON 陣列格式回傳，不要附加 Markdown \`\`\`json 標籤以外的說明文字。
-每個物件欄位：
-- "date": 日期字串，格式如 "10/02"
-- "day": 星期字串，如 "五" 或 "星期五"
-- "time": 時間字串，如 "21:00"
-- "title": 演出名稱，如 "爵士之夜"
-- "venue": 演出地點/酒吧名稱，如 "Blue Note"`;
+      try {
+        const systemPrompt = `你是一個專業的行程解析助手。請分析傳入的 Mac 行事曆 PDF 或圖片內容，提取出所有公開演出與音樂活動列表。
+請嚴格以 JSON 陣列格式回傳，格式範例：
+[
+  {
+    "date": "10/02",
+    "day": "五",
+    "time": "21:00",
+    "title": "安和 R&B Swing",
+    "venue": "安和 R&B Swing"
+  }
+]`;
 
-      let partsPayload = [];
-      if (selectedFile) {
-        try {
+        let partsPayload = [];
+        if (selectedFile) {
           const base64Data = await fileToBase64(selectedFile);
           const mimeType = selectedFile.type || (selectedFile.name.endsWith('.pdf') ? 'application/pdf' : 'image/png');
           partsPayload.push({
@@ -474,35 +483,33 @@
               data: base64Data
             }
           });
-        } catch (e) {
-          console.error("Error reading file:", e);
         }
-      }
-      partsPayload.push({ text: systemPrompt });
+        partsPayload.push({ text: systemPrompt });
 
-      // Model Fallback sequence to prevent 404 errors completely
-      const fallbackModels = [state.selectedModel, 'gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash-exp'];
-      const uniqueModels = [...new Set(fallbackModels)];
+        const fallbackModels = [state.selectedModel, 'gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash-exp'];
+        const uniqueModels = [...new Set(fallbackModels)];
 
-      let successData = null;
-      let lastError = null;
+        let successData = null;
+        let lastError = null;
 
-      if (apiKey) {
         for (const model of uniqueModels) {
           try {
-            console.log(`Trying Gemini model endpoint: ${model}`);
+            console.log(`正在使用 Gemini 模型: ${model}`);
             const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
             
             const response = await fetch(endpoint, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
-                contents: [{ parts: partsPayload }]
+                contents: [{ parts: partsPayload }],
+                generationConfig: {
+                  responseMimeType: "application/json"
+                }
               })
             });
 
             if (response.status === 404) {
-              console.warn(`Model ${model} returned 404, trying next fallback model...`);
+              console.warn(`Model ${model} 回傳 404，嘗試切換備援模型...`);
               continue;
             }
 
@@ -514,186 +521,34 @@
             const data = await response.json();
             const replyText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
             
-            // Clean markdown code blocks if present
-            const cleanJsonStr = replyText.replace(/```json/g, '').replace(/```/g, '').trim();
+            // Clean markdown blocks if present
+            let cleanJsonStr = replyText.trim();
+            cleanJsonStr = cleanJsonStr.replace(/^```json\s*/i, '').replace(/^```\s*/, '').replace(/\s*```$/, '').trim();
+            
             successData = JSON.parse(cleanJsonStr);
             
-            // Update UI model badge
             document.getElementById('currentModelBadge').innerText = `${model} (解析成功)`;
             break;
           } catch (err) {
-            console.error(`Error with ${model}:`, err);
+            console.error(`模型 ${model} 發生錯誤:`, err);
             lastError = err;
           }
         }
-      }
 
-      if (!successData) {
-        if (apiKey && lastError) {
-          showToast(`API 解析失敗 (${lastError.message})，請檢查 API Key 權限。`, 'error');
-        } else if (!apiKey) {
-          showToast('請先設定 API Key 以解析上傳之 PDF/圖片檔。', 'warning');
+        if (successData && Array.isArray(successData)) {
+          showToast('Gemini AI 行程解析成功！🎉');
+          state.schedules = applyRules(successData);
+          renderScheduleTable();
+          generatePostText();
+        } else {
+          showToast(`解析失敗：${lastError ? lastError.message : '無回應資料'}，請確認 API Key 與上傳檔案。`, 'error');
         }
-      } else {
-        showToast('Gemini AI 檔案解析成功！');
-        state.schedules = applyRules(successData);
-        renderScheduleTable();
-        generatePostText();
-      }
-
-      analyzeBtn.disabled = false;
-      analyzeBtn.innerHTML = originalBtnText;
-    }
-
-    // Apply Custom Rules (Step 2)
-    function applyRules(parsedList) {
-      return parsedList.map(item => {
-        let newItem = { ...item, use: true };
-        
-        // Search matching rule
-        state.rules.forEach(rule => {
-          if (rule.key && (newItem.title.includes(rule.key) || newItem.venue.includes(rule.key))) {
-            if (rule.time) newItem.time = rule.time;
-            if (rule.venue) {
-              newItem.title = rule.venue;
-              newItem.venue = rule.venue;
-            }
-          }
-        });
-
-        return newItem;
-      });
-    }
-
-    function renderScheduleTable() {
-      const tbody = document.getElementById('scheduleTableBody');
-      const countBadge = document.getElementById('itemCountBadge');
-      
-      countBadge.innerText = `${state.schedules.length} 個行程`;
-
-      if (state.schedules.length === 0) {
-        tbody.innerHTML = `
-          <tr id="emptyRowPlaceholder">
-            <td colspan="7" class="py-12 text-center text-gray-400">
-              <i class="fa-regular fa-calendar-xmark text-3xl mb-2 text-gray-300 block"></i>
-              尚未有解析行程資料，請從左側上傳行程或點擊「載入 10 月範例資料」
-            </td>
-          </tr>`;
-        return;
-      }
-
-      tbody.innerHTML = state.schedules.map((item, index) => `
-        <tr class="hover:bg-amber-50/40 transition">
-          <td class="p-2.5 text-center">
-            <input type="checkbox" ${item.use ? 'checked' : ''} onchange="toggleScheduleUse(${index})" class="rounded text-amber-600 focus:ring-amber-400">
-          </td>
-          <td class="p-2.5">
-            <input type="text" value="${item.date || ''}" onchange="updateScheduleField(${index}, 'date', this.value)" class="w-full p-1 border rounded bg-white font-mono text-xs">
-          </td>
-          <td class="p-2.5">
-            <input type="text" value="${item.day || ''}" onchange="updateScheduleField(${index}, 'day', this.value)" class="w-full p-1 border rounded bg-white text-xs">
-          </td>
-          <td class="p-2.5">
-            <input type="text" value="${item.time || ''}" onchange="updateScheduleField(${index}, 'time', this.value)" class="w-full p-1 border rounded bg-white font-mono text-xs">
-          </td>
-          <td class="p-2.5">
-            <input type="text" value="${item.title || ''}" onchange="updateScheduleField(${index}, 'title', this.value)" class="w-full p-1 border rounded bg-white text-xs font-medium">
-          </td>
-          <td class="p-2.5">
-            <input type="text" value="${item.venue || ''}" onchange="updateScheduleField(${index}, 'venue', this.value)" class="w-full p-1 border rounded bg-white text-xs">
-          </td>
-          <td class="p-2.5 text-center">
-            <button onclick="deleteScheduleRow(${index})" class="text-gray-300 hover:text-rose-500 transition">
-              <i class="fa-solid fa-trash-can"></i>
-            </button>
-          </td>
-        </tr>
-      `).join('');
-    }
-
-    function toggleScheduleUse(index) {
-      state.schedules[index].use = !state.schedules[index].use;
-      generatePostText();
-    }
-
-    function updateScheduleField(index, field, value) {
-      state.schedules[index][field] = value;
-      generatePostText();
-    }
-
-    function deleteScheduleRow(index) {
-      state.schedules.splice(index, 1);
-      renderScheduleTable();
-      generatePostText();
-    }
-
-    function addScheduleRow() {
-      state.schedules.push({
-        use: true,
-        date: '10/01',
-        day: '五',
-        time: '20:00',
-        title: '新行程名稱',
-        venue: '地點名稱'
-      });
-      renderScheduleTable();
-      generatePostText();
-    }
-
-    function sortSchedule() {
-      state.schedules.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
-      renderScheduleTable();
-      generatePostText();
-      showToast('已依日期排序！');
-    }
-
-    // Generate Instagram Post Format
-    function generatePostText() {
-      const title = document.getElementById('postTitleInput').value.trim();
-      const footer = document.getElementById('postFooterInput').value.trim();
-      const format = document.getElementById('dateFormatSelect').value;
-
-      const activeSchedules = state.schedules.filter(s => s.use !== false);
-
-      let lines = [];
-      if (title) lines.push(title + '\n');
-
-      activeSchedules.forEach(s => {
-        let dayStr = s.day || '';
-        if (format === 'full' && dayStr && !dayStr.startsWith('星期')) {
-          dayStr = `星期${dayStr}`;
-        }
-        
-        let datePart = s.date;
-        if (format !== 'dateOnly' && dayStr) {
-          datePart += ` (${dayStr})`;
-        }
-
-        lines.push(`🗓️ ${datePart}`);
-        if (s.time) lines.push(`⏰ ${s.time}`);
-        lines.push(`📍 ${s.title || s.venue}`);
-        lines.push(''); // Empty spacer line
-      });
-
-      if (footer) {
-        lines.push(footer);
-      }
-
-      const finalText = lines.join('\n');
-      document.getElementById('postPreviewText').innerText = finalText || '解析完成後將在此自動生成 IG 貼文內容...';
-    }
-
-    function addNewRule() {
-      state.rules.push({ key: '新字', day: '星期五 (Fri)', time: '晚上 8:00', venue: '自訂場地' });
-      renderRules();
-      showToast('已新增一條替換對照規則！');
-    }
-
-    function removeRule(btn) {
-      const card = btn.closest('.rule-card');
-      if (card) {
-        card.remove();
-        showToast('已刪除規則');
+      } catch (globalErr) {
+        console.error("解析過程發生異常:", globalErr);
+        showToast(`處理失敗：${globalErr.message}`, 'error');
+      } finally {
+        analyzeBtn.disabled = false;
+        analyzeBtn.innerHTML = originalBtnText;
       }
     }
 
