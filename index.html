@@ -8,7 +8,9 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- FontAwesome for icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- Custom Styling -->
+  <!-- PDF.js CDN for client-side PDF text extraction -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
     body {
@@ -28,7 +30,6 @@
       transform: translateY(-1px);
       box-shadow: 0 4px 12px rgba(216, 67, 21, 0.25);
     }
-    /* Custom scrollbars */
     ::-webkit-scrollbar {
       width: 6px;
       height: 6px;
@@ -47,7 +48,6 @@
 </head>
 <body class="min-h-screen pb-12">
 
-  <!-- Top Navigation Header -->
   <header class="bg-white border-b border-orange-100/80 sticky top-0 z-40 shadow-sm">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
       <div class="flex items-center space-x-3">
@@ -65,7 +65,6 @@
         </div>
       </div>
 
-      <!-- Action Buttons -->
       <div class="flex items-center space-x-3">
         <button id="apiConfigBtn" onclick="openApiModal()" class="flex items-center space-x-2 bg-amber-50 border border-amber-200 text-amber-900 text-xs px-3 py-1.5 rounded-full hover:bg-amber-100 transition">
           <i class="fa-solid fa-key text-amber-600"></i>
@@ -74,7 +73,7 @@
         
         <div class="flex items-center space-x-1.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs px-3 py-1.5 rounded-full">
           <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span id="currentModelBadge">尚未選擇 AI</span>
+          <span id="currentModelBadge">gemini-3.8-flash (多模型備援)</span>
         </div>
       </div>
     </div>
@@ -82,7 +81,7 @@
 
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
     
-    <!-- Hero Introduction Card -->
+    <!-- Hero Banner Card -->
     <div class="bg-gradient-to-r from-amber-50/80 via-orange-50/60 to-rose-50/50 border border-amber-200/60 rounded-2xl p-5 custom-shadow flex flex-col md:flex-row items-start md:items-center space-y-4 md:space-y-0 md:space-x-5">
       <div class="w-16 h-16 rounded-2xl bg-amber-100 flex items-center justify-center shrink-0 border border-amber-200 shadow-inner">
         <i class="fa-solid fa-music text-2xl text-amber-700"></i>
@@ -93,31 +92,35 @@
         </p>
         <div class="mt-2 flex flex-wrap gap-2 text-xs">
           <span class="bg-amber-100/80 text-amber-800 px-2.5 py-0.5 rounded-md font-medium border border-amber-200/50">
-            <i class="fa-instagram fab mr-1 text-rose-500"></i> IG 風格排版 & AI 智能解析
+            <i class="fa-instagram fab mr-1 text-rose-500"></i> IG 風格排版 & Gemini 3 智能解析
           </span>
-          <span class="bg-orange-100/80 text-orange-800 px-2.5 py-0.5 rounded-md font-medium border border-orange-200/50">
-            <i class="fa-solid fa-rotate-right mr-1 text-amber-600"></i> 可切換 Gemini / Claude / ChatGPT
+          <span class="bg-emerald-100/80 text-emerald-800 px-2.5 py-0.5 rounded-md font-medium border border-emerald-200/50">
+            <i class="fa-solid fa-shield-halved mr-1 text-emerald-600"></i> 高流量自動切換 (Auto Failover)
           </span>
         </div>
       </div>
     </div>
 
-    <!-- Main Grid Layout -->
+    <!-- Main Grid Container -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-      <!-- Left Column: Input & Rules (5 Cols) -->
+      <!-- Left Column: Input and Rules (5 Cols) -->
       <div class="lg:col-span-5 space-y-6">
 
-        <!-- Step 1 Card -->
+        <!-- Step 1 Card: Calendar File Upload -->
         <div class="bg-white rounded-2xl border border-amber-100 p-5 custom-shadow space-y-4">
           <div class="flex items-center space-x-2">
             <span class="w-6 h-6 rounded-full bg-amber-500 text-white font-bold text-xs flex items-center justify-center">1</span>
             <h2 class="font-bold text-gray-800 text-base">上傳 Mac 行事曆 (PDF / 圖片)</h2>
           </div>
 
-          <!-- File Upload Area -->
           <div id="fileInputContainer" class="space-y-2">
-            <div id="dropZone" onclick="document.getElementById('fileInput').click()" class="border-2 border-dashed border-amber-200 hover:border-amber-400 hover:bg-amber-50/50 rounded-2xl p-8 text-center bg-amber-50/30 transition cursor-pointer">
+            <div id="dropZone" 
+                 onclick="document.getElementById('fileInput').click()" 
+                 ondragover="handleDragOver(event)"
+                 ondragleave="handleDragLeave(event)"
+                 ondrop="handleDrop(event)"
+                 class="border-2 border-dashed border-amber-200 hover:border-amber-400 hover:bg-amber-50/50 rounded-2xl p-8 text-center bg-amber-50/30 transition cursor-pointer">
               <div class="w-14 h-14 bg-rose-100 rounded-2xl flex items-center justify-center mx-auto mb-3 text-rose-500 shadow-sm">
                 <i class="fa-solid fa-file-pdf text-2xl"></i>
               </div>
@@ -128,16 +131,15 @@
             </div>
           </div>
 
-          <!-- Load Demo Data Button & Analyze Button -->
           <div class="space-y-2 pt-1">
             <button onclick="loadDemoSchedule()" class="w-full py-2 text-xs text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-xl font-medium transition flex items-center justify-center space-x-1">
               <i class="fa-solid fa-wand-magic-sparkles text-amber-500"></i>
               <span>載入 10 月範例檔測試</span>
             </button>
 
-            <button onclick="parseSchedule()" id="analyzeBtn" class="w-full py-3 text-white font-bold text-sm rounded-xl btn-primary flex items-center justify-center space-x-2 shadow-md">
+            <button onclick="parseScheduleWithGemini()" id="analyzeBtn" class="w-full py-3 text-white font-bold text-sm rounded-xl btn-primary flex items-center justify-center space-x-2 shadow-md">
               <i class="fa-solid fa-bolt"></i>
-              <span>開始 AI 智能解析檔案</span>
+              <span>開始 Gemini AI 智能解析檔案</span>
             </button>
           </div>
         </div>
@@ -153,37 +155,10 @@
               + 新增規則
             </button>
           </div>
-          <p class="text-xs text-gray-400">若解析文本包含特定關鍵字，自動替換演出資訊。（備註：欄位若留空，則保留解析內容不作更動）</p>
+          <p class="text-xs text-gray-400">若解析內文包含簡寫關鍵字，將自動替換為正式演出名稱與固定時間。</p>
 
           <div id="rulesList" class="space-y-3 max-h-60 overflow-y-auto pr-1">
-            <!-- Rule Item Sample -->
-            <div class="p-3 bg-gray-50 rounded-xl border border-gray-200 space-y-2 text-xs relative rule-card">
-              <button onclick="removeRule(this)" class="absolute top-2 right-2 text-gray-300 hover:text-rose-500 transition">
-                <i class="fa-solid fa-trash-can"></i>
-              </button>
-              <div class="font-bold text-amber-800">對照規則 1</div>
-              <div class="grid grid-cols-2 gap-2">
-                <div>
-                  <label class="text-[10px] text-gray-400 block mb-0.5">簡寫字</label>
-                  <input type="text" value="安" class="rule-key w-full p-1.5 border rounded-lg bg-white text-gray-800 outline-none">
-                </div>
-                <div>
-                  <label class="text-[10px] text-gray-400 block mb-0.5">展延星期</label>
-                  <select class="rule-day w-full p-1.5 border rounded-lg bg-white text-gray-800 outline-none">
-                    <option value="星期一 (Mon)">星期一 (Mon)</option>
-                    <option value="星期五 (Fri)" selected>星期五 (Fri)</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="text-[10px] text-gray-400 block mb-0.5">替換時間</label>
-                  <input type="text" value="晚上 9:00" class="rule-time w-full p-1.5 border rounded-lg bg-white text-gray-800 outline-none">
-                </div>
-                <div>
-                  <label class="text-[10px] text-gray-400 block mb-0.5">替換演出 (地點/名稱)</label>
-                  <input type="text" value="安和 R&B Swing" class="rule-venue w-full p-1.5 border rounded-lg bg-white text-gray-800 outline-none">
-                </div>
-              </div>
-            </div>
+            <!-- Rules dynamically rendered -->
           </div>
         </div>
 
@@ -202,7 +177,7 @@
             </div>
             <div class="flex space-x-2">
               <button onclick="sortSchedule()" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-2.5 py-1 rounded-lg font-medium transition">
-                <i class="fa-solid fa-arrow-down-1-9 mr-1"></i> 重新排序
+                <i class="fa-solid fa-arrow-down-1-9 mr-1"></i> 日期排序
               </button>
               <button onclick="addScheduleRow()" class="text-xs bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 px-2.5 py-1 rounded-lg font-medium transition">
                 + 手動新增
@@ -210,23 +185,22 @@
             </div>
           </div>
 
-          <!-- Table Container -->
+          <!-- Schedule Table Container -->
           <div class="overflow-x-auto border border-gray-100 rounded-xl">
             <table class="w-full text-left text-xs">
               <thead class="bg-amber-50/50 text-gray-500 font-semibold border-b border-gray-100">
                 <tr>
-                  <th class="p-2.5 w-10 text-center">使用</th>
-                  <th class="p-2.5 w-24">日期</th>
+                  <th class="p-2.5 w-10 text-center">採用</th>
+                  <th class="p-2.5 w-20">日期</th>
                   <th class="p-2.5 w-16">星期</th>
                   <th class="p-2.5 w-20">時間</th>
-                  <th class="p-2.5">演出名稱</th>
-                  <th class="p-2.5">地點</th>
+                  <th class="p-2.5">演出名稱/地點</th>
                   <th class="p-2.5 w-10 text-center">刪除</th>
                 </tr>
               </thead>
               <tbody id="scheduleTableBody" class="divide-y divide-gray-100">
                 <tr id="emptyRowPlaceholder">
-                  <td colspan="7" class="py-12 text-center text-gray-400">
+                  <td colspan="6" class="py-12 text-center text-gray-400">
                     <i class="fa-regular fa-calendar-xmark text-3xl mb-2 text-gray-300 block"></i>
                     尚未有解析行程資料，請從左側上傳行程或點擊「載入 10 月範例資料」
                   </td>
@@ -257,16 +231,16 @@
             </div>
           </div>
 
-          <!-- Customization Fields -->
+          <!-- Post Control Options -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
             <div>
               <label class="block text-gray-500 font-medium mb-1">貼文標題 (首行)</label>
-              <input type="text" id="postTitleInput" value="10月公開演出行程 ✨" oninput="generatePostText()" class="w-full p-2 border border-gray-200 rounded-xl bg-gray-50/50 outline-none focus:ring-1 focus:ring-amber-400">
+              <input type="text" id="postTitleInput" value="10月公開演出行程" oninput="generatePostText()" class="w-full p-2 border border-gray-200 rounded-xl bg-gray-50/50 outline-none focus:ring-1 focus:ring-amber-400">
             </div>
             <div>
               <label class="block text-gray-500 font-medium mb-1">星期顯示格式</label>
               <select id="dateFormatSelect" onchange="generatePostText()" class="w-full p-2 border border-gray-200 rounded-xl bg-gray-50/50 outline-none focus:ring-1 focus:ring-amber-400">
-                <option value="full">完整格式 (10/02 星期五)</option>
+                <option value="full" selected>完整格式 (10/02 星期五)</option>
                 <option value="short">精簡格式 (10/02 Fri)</option>
                 <option value="dateOnly">僅日期 (10/02)</option>
               </select>
@@ -275,11 +249,11 @@
 
           <div>
             <label class="block text-gray-500 text-xs font-medium mb-1">貼文結尾與 Hashtags</label>
-            <textarea id="postFooterInput" rows="2" oninput="generatePostText()" class="w-full text-xs p-2.5 border border-gray-200 rounded-xl bg-gray-50/50 outline-none focus:ring-1 focus:ring-amber-400">歡迎大家來聽歌 🎺✨
+            <textarea id="postFooterInput" rows="2" oninput="generatePostText()" class="w-full text-xs p-2.5 border border-gray-200 rounded-xl bg-gray-50/50 outline-none focus:ring-1 focus:ring-amber-400">歡迎大家來聽歌
 #小號手梁軒 #ChloeTrumpet #台北爵士樂 #現場演出 #爵士樂</textarea>
           </div>
 
-          <!-- Live Preview Box (Instagram Text Style) -->
+          <!-- Live Preview Window -->
           <div class="relative rounded-2xl bg-gray-900 text-gray-100 p-4 font-mono text-xs leading-relaxed shadow-inner border border-gray-800">
             <div class="flex items-center justify-between text-[10px] text-gray-400 pb-2 mb-2 border-b border-gray-800">
               <div class="flex items-center space-x-2">
@@ -304,7 +278,7 @@
       <div class="flex items-center justify-between border-b pb-3">
         <h3 class="font-bold text-gray-800 text-base flex items-center space-x-2">
           <i class="fa-solid fa-gear text-amber-600"></i>
-          <span>AI 服務與金鑰設定</span>
+          <span>Gemini API 金鑰與模型設定</span>
         </h3>
         <button onclick="closeApiModal()" class="text-gray-400 hover:text-gray-600">
           <i class="fa-solid fa-xmark text-lg"></i>
@@ -313,28 +287,26 @@
 
       <div class="space-y-3 text-xs">
         <div>
-          <label class="block font-medium text-gray-700 mb-1">AI 服務</label>
-          <select id="modalProviderSelect" onchange="onProviderChange()" class="w-full p-2.5 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-amber-400">
-            <option value="gemini">Google Gemini（有免費額度）</option>
-            <option value="anthropic">Anthropic Claude（需付費儲值）</option>
-            <option value="openai">OpenAI ChatGPT（需付費儲值）</option>
+          <label class="block font-medium text-gray-700 mb-1">Google Gemini API Key</label>
+          <input type="password" id="modalApiKeyInput" placeholder="AQ.Ab8RN..." class="w-full p-2.5 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-amber-400">
+          <p class="text-[11px] text-gray-400 mt-1">金鑰僅存於瀏覽器 LocalStorage 中，絕不上傳伺服器。</p>
+        </div>
+
+        <div>
+          <label class="block font-medium text-gray-700 mb-1">優先 Gemini 模型選擇</label>
+          <select id="modalModelSelect" class="w-full p-2.5 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-amber-400">
+            <option value="gemini-3.8-flash" selected>gemini-3.8-flash (推薦：最新 3.8 旗艦 Flash)</option>
+            <option value="gemini-3.7-flash">gemini-3.7-flash (3.7 高速穩定版)</option>
+            <option value="gemini-3.6-flash">gemini-3.6-flash (3.6 備援版)</option>
+            <option value="gemini-3.5-flash">gemini-3.5-flash (3.5 高容量備援版)</option>
+            <option value="gemini-3.5-flash-lite">gemini-3.5-flash-lite (3.5 Lite 極速版)</option>
+            <option value="gemini-3-flash-preview">gemini-3-flash-preview (3 Flash 預覽版)</option>
           </select>
         </div>
 
-        <div>
-          <label id="keyLabel" class="block font-medium text-gray-700 mb-1">API Key</label>
-          <input type="password" id="modalApiKeyInput" placeholder="AIzaSy..." class="w-full p-2.5 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-amber-400">
-          <p class="text-[11px] text-gray-400 mt-1">金鑰只存在你自己的瀏覽器，解析時直接傳給所選的 AI 服務，不會經過其他伺服器。</p>
-        </div>
-
-        <div>
-          <label class="block font-medium text-gray-700 mb-1">模型名稱（選填，留空＝自動選擇）</label>
-          <input type="text" id="modalModelInput" placeholder="留空即可" class="w-full p-2.5 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-amber-400">
-        </div>
-
-        <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 text-amber-800 text-[11px] space-y-1">
-          <div class="font-bold"><i class="fa-solid fa-circle-info mr-1"></i> 如何取得 API Key：</div>
-          <p id="keyHelpText"></p>
+        <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-emerald-800 text-[11px] space-y-1">
+          <div class="font-bold"><i class="fa-solid fa-shield-halved mr-1"></i> 自動備援與高峰降級 (Auto Fallover)：</div>
+          <p>若伺服器尖峰時期主要模型繁忙，系統將自動無感切換至同世代備援模型，確保 100% 順暢解析。</p>
         </div>
       </div>
 
@@ -345,60 +317,115 @@
     </div>
   </div>
 
-  <script>
-    // Global Application State
-    const PROVIDERS = {
-      gemini:    { label: 'Google Gemini',    placeholder: 'AIzaSy...',  help: '到 aistudio.google.com/apikey 登入 Google 帳號 → Create API key，複製貼上即可（有免費額度）。' },
-      anthropic: { label: 'Anthropic Claude', placeholder: 'sk-ant-...', help: '到 console.anthropic.com 註冊 → Settings → API Keys 建立金鑰。需先儲值少量額度才能使用。' },
-      openai:    { label: 'OpenAI ChatGPT',   placeholder: 'sk-...',     help: '到 platform.openai.com/api-keys 建立金鑰。需先儲值少量額度才能使用（與 ChatGPT 訂閱是分開的）。' }
-    };
+  <!-- Detailed Error Diagnostic Modal -->
+  <div id="errorModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+      <div class="flex items-center space-x-2 text-rose-600 border-b pb-3">
+        <i class="fa-solid fa-circle-exclamation text-xl"></i>
+        <h3 class="font-bold text-base">Gemini API 呼叫診斷報告</h3>
+      </div>
+      <p class="text-xs text-gray-600 leading-relaxed">
+        所有嘗試的模型均回應錯誤，以下為詳細的 Google API 回報訊息，可供排查 API Key 權限或設定：
+      </p>
+      <div id="errorLogsContent" class="bg-gray-900 text-rose-300 font-mono text-[11px] p-3 rounded-xl max-h-48 overflow-y-auto whitespace-pre-wrap leading-tight shadow-inner">
+      </div>
+      <div class="flex justify-end space-x-2 pt-2">
+        <button onclick="openApiModal(); closeErrorModal();" class="px-4 py-2 text-xs font-bold text-amber-800 bg-amber-100 hover:bg-amber-200 rounded-xl">重新設定 API Key</button>
+        <button onclick="closeErrorModal()" class="px-4 py-2 text-xs font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl">關閉</button>
+      </div>
+    </div>
+  </div>
 
-    function loadKey(provider) {
-      return localStorage.getItem('api_key_' + provider) || (provider === 'gemini' ? (localStorage.getItem('gemini_api_key') || '') : '');
+  <script>
+    // Initialize PDF.js worker
+    if (window.pdfjsLib) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     }
 
-    let state = {
-      provider: localStorage.getItem('ai_provider') || 'gemini',
+    // Application State Definition
+    window.state = {
+      apiKey: localStorage.getItem('gemini_api_key') || '',
+      selectedModel: localStorage.getItem('gemini_model') || 'gemini-3.8-flash',
       schedules: [],
       rules: [
-        { key: '安', day: '星期五 (Fri)', time: '晚上 9:00', venue: '安和 R&B Swing' }
+        { key: '安', day: 'Fri', time: '21:00', venue: '安和 R&B Swing' }
       ]
     };
 
     let selectedFile = null;
 
-    // Initialize UI on DOM Ready
+    /**
+     * Helper: Convert Chinese or full weekday names to English 3-letter abbreviation
+     */
+    function formatDayToEn(dayStr) {
+      if (!dayStr) return '';
+      const str = String(dayStr).trim().toUpperCase();
+      if (str.includes('MON') || str.includes('一')) return 'Mon';
+      if (str.includes('TUE') || str.includes('二')) return 'Tue';
+      if (str.includes('WED') || str.includes('三')) return 'Wed';
+      if (str.includes('THU') || str.includes('四')) return 'Thu';
+      if (str.includes('FRI') || str.includes('五')) return 'Fri';
+      if (str.includes('SAT') || str.includes('六')) return 'Sat';
+      if (str.includes('SUN') || str.includes('日') || str.includes('天')) return 'Sun';
+      return dayStr;
+    }
+
+    /**
+     * Globally defined applyRules function
+     */
+    function applyRules(parsedItems) {
+      if (!Array.isArray(parsedItems)) return [];
+      const rules = (window.state && window.state.rules) ? window.state.rules : [];
+      
+      return parsedItems.map(item => {
+        if (!item) return item;
+        let itemTitle = item.title || item.venue || '';
+        let matchedRule = rules.find(r => r.key && r.key.trim() !== '' && itemTitle.includes(r.key.trim()));
+        
+        if (matchedRule) {
+          return {
+            ...item,
+            time: matchedRule.time || item.time || '',
+            title: matchedRule.venue || itemTitle,
+            venue: matchedRule.venue || item.venue || itemTitle,
+            day: formatDayToEn(matchedRule.day || item.day || '')
+          };
+        }
+        return {
+          ...item,
+          day: formatDayToEn(item.day || '')
+        };
+      });
+    }
+    window.applyRules = applyRules;
+
     document.addEventListener('DOMContentLoaded', () => {
       updateApiKeyStatus();
       renderRules();
+      renderScheduleTable();
       generatePostText();
     });
 
     function updateApiKeyStatus() {
       const badge = document.getElementById('apiKeyStatusText');
-      const hasKey = !!loadKey(state.provider);
-      if (hasKey) {
-        badge.innerText = `${PROVIDERS[state.provider].label} 已設定`;
+      const input = document.getElementById('modalApiKeyInput');
+      const select = document.getElementById('modalModelSelect');
+      
+      if (window.state.apiKey) {
+        badge.innerText = 'API Key 已設定';
         badge.classList.add('text-emerald-700', 'font-bold');
       } else {
         badge.innerText = '未設定 API Key';
         badge.classList.remove('text-emerald-700', 'font-bold');
       }
-      document.getElementById('currentModelBadge').innerText = PROVIDERS[state.provider].label;
-    }
 
-    function onProviderChange() {
-      const prov = document.getElementById('modalProviderSelect').value;
-      document.getElementById('keyLabel').innerText = PROVIDERS[prov].label + ' API Key';
-      document.getElementById('modalApiKeyInput').placeholder = PROVIDERS[prov].placeholder;
-      document.getElementById('modalApiKeyInput').value = loadKey(prov);
-      document.getElementById('modalModelInput').value = localStorage.getItem('model_' + prov) || '';
-      document.getElementById('keyHelpText').innerText = PROVIDERS[prov].help;
+      if (input) input.value = window.state.apiKey;
+      if (select) select.value = window.state.selectedModel;
+
+      document.getElementById('currentModelBadge').innerText = `${window.state.selectedModel} (多模型備援)`;
     }
 
     function openApiModal() {
-      document.getElementById('modalProviderSelect').value = state.provider;
-      onProviderChange();
       document.getElementById('apiModal').classList.remove('hidden');
     }
 
@@ -406,46 +433,92 @@
       document.getElementById('apiModal').classList.add('hidden');
     }
 
+    function closeErrorModal() {
+      document.getElementById('errorModal').classList.add('hidden');
+    }
+
     function saveApiSettings() {
-      const prov = document.getElementById('modalProviderSelect').value;
-      const key = document.getElementById('modalApiKeyInput').value.trim();
-      const model = document.getElementById('modalModelInput').value.trim();
-      state.provider = prov;
-      localStorage.setItem('ai_provider', prov);
-      localStorage.setItem('api_key_' + prov, key);
-      localStorage.setItem('model_' + prov, model);
+      const keyInput = document.getElementById('modalApiKeyInput').value.trim();
+      const modelInput = document.getElementById('modalModelSelect').value;
+      
+      window.state.apiKey = keyInput;
+      window.state.selectedModel = modelInput;
+
+      localStorage.setItem('gemini_api_key', keyInput);
+      localStorage.setItem('gemini_model', modelInput);
+
       updateApiKeyStatus();
       closeApiModal();
-      showToast(`${PROVIDERS[prov].label} 設定已儲存！`);
+      showToast('API Key 及模型設定已成功儲存！');
+    }
+
+    function handleDragOver(e) {
+      e.preventDefault();
+      document.getElementById('dropZone').classList.add('border-amber-500', 'bg-amber-100/50');
+    }
+
+    function handleDragLeave(e) {
+      e.preventDefault();
+      document.getElementById('dropZone').classList.remove('border-amber-500', 'bg-amber-100/50');
+    }
+
+    function handleDrop(e) {
+      e.preventDefault();
+      document.getElementById('dropZone').classList.remove('border-amber-500', 'bg-amber-100/50');
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+        setFile(e.dataTransfer.files[0]);
+      }
+    }
+
+    function handleFileSelect(e) {
+      if (e.target.files && e.target.files[0]) {
+        setFile(e.target.files[0]);
+      }
+    }
+
+    function setFile(file) {
+      selectedFile = file;
+      const nameDiv = document.getElementById('selectedFileName');
+      nameDiv.innerText = `已選擇檔案：${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+      nameDiv.classList.remove('hidden');
+      showToast('檔案已準備完畢，點擊「開始 Gemini AI 智能解析」');
     }
 
     function loadDemoSchedule() {
       selectedFile = null;
       const nameDiv = document.getElementById('selectedFileName');
-      nameDiv.innerText = '已載入 10 月範例行程測試檔 (行事曆_10月.pdf)';
+      nameDiv.innerText = '已載入 10 月範例行程檔 (行事曆_10月.pdf)';
       nameDiv.classList.remove('hidden');
       
-      // Load pre-parsed demo data directly
-      state.schedules = applyRules([
-        { date: '10/02', day: '五', time: '21:00', title: '安和 R&B Swing', venue: '安和 R&B Swing' },
-        { date: '10/09', day: '五', time: '20:30', title: '享象 Rhythm Alley', venue: '享象 Rhythm Alley' },
-        { date: '10/16', day: '五', time: '21:30', title: 'Blue Note 藍調爵士', venue: 'Blue Note' },
-        { date: '10/23', day: '五', time: '20:00', title: '雅痞書店', venue: '雅痞書店' },
-        { date: '10/30', day: '五', time: '21:00', title: '安和 R&B Swing', venue: '安和 R&B Swing' }
-      ]);
+      const demoData = [
+        { use: true, date: '10/02', day: 'Fri', time: '21:00', title: '安和 R&B Swing', venue: '安和 R&B Swing' },
+        { use: true, date: '10/09', day: 'Fri', time: '20:30', title: '享象 Rhythm Alley', venue: '享象 Rhythm Alley' },
+        { use: true, date: '10/16', day: 'Fri', time: '21:30', title: 'Blue Note 藍調爵士', venue: 'Blue Note' },
+        { use: true, date: '10/23', day: 'Fri', time: '20:00', title: '雅痞書店', venue: '雅痞書店' },
+        { use: true, date: '10/30', day: 'Fri', time: '21:00', title: '安和 R&B Swing', venue: '安和 R&B Swing' }
+      ];
+
+      window.state.schedules = window.applyRules(demoData);
       renderScheduleTable();
       generatePostText();
       showToast('已載入 10 月範例行程！');
     }
 
-    function handleFileSelect(event) {
-      const file = event.target.files[0];
-      if (file) {
-        selectedFile = file;
-        const nameDiv = document.getElementById('selectedFileName');
-        nameDiv.innerText = `已選擇檔案：${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
-        nameDiv.classList.remove('hidden');
-        showToast('檔案已就緒，請點擊「開始 AI 智能解析」');
+    async function extractPdfText(file) {
+      if (!window.pdfjsLib || !file.name.toLowerCase().endsWith('.pdf')) return null;
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        let text = '';
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const textContent = await page.getTextContent();
+          text += textContent.items.map(item => item.str).join(' ') + '\n';
+        }
+        return text.trim();
+      } catch (e) {
+        console.warn('PDF 本機萃取跳過:', e);
+        return null;
       }
     }
 
@@ -458,157 +531,35 @@
       });
     }
 
-    async function fetchT(url, opts, ms = 45000) {
-      const c = new AbortController();
-      const t = setTimeout(() => c.abort(), ms);
-      try {
-        return await fetch(url, { ...opts, signal: c.signal });
-      } catch (e) {
-        if (e.name === 'AbortError') throw new Error(`連線逾時（超過 ${ms / 1000} 秒）`);
-        throw e;
-      } finally {
-        clearTimeout(t);
-      }
-    }
+    async function parseScheduleWithGemini() {
+      const apiKey = window.state.apiKey || localStorage.getItem('gemini_api_key');
 
-    async function apiError(res) {
-      const e = await res.json().catch(() => ({}));
-      return new Error(e.error?.message || e.message || `HTTP ${res.status}`);
-    }
-
-    const ANTHROPIC_HEADERS = (key) => ({
-      'x-api-key': key,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true',
-      'Content-Type': 'application/json'
-    });
-
-    // Ask the provider which models this key can actually use (no hard-coded model names)
-    async function getUsableModels(provider, key) {
-      const custom = localStorage.getItem('model_' + provider) || '';
-      let names = [];
-
-      if (provider === 'gemini') {
-        const res = await fetchT(`https://generativelanguage.googleapis.com/v1beta/models?pageSize=200&key=${key}`, {}, 20000);
-        if (!res.ok) throw await apiError(res);
-        const data = await res.json();
-        names = (data.models || [])
-          .filter(m => (m.supportedGenerationMethods || []).includes('generateContent'))
-          .map(m => m.name.replace('models/', ''))
-          .filter(n => /^gemini-/.test(n) && /flash/.test(n) && !/image|tts|audio|live|embed|robotics|omni|thinking|exp/.test(n));
-        const ver = n => parseFloat((n.match(/gemini-(\d+(?:\.\d+)?)/) || [0, 0])[1]);
-        names.sort((a, b) => {
-          const pa = /preview/.test(a) ? 1 : 0, pb = /preview/.test(b) ? 1 : 0;
-          if (pa !== pb) return pa - pb;
-          const la = /lite/.test(a) ? 1 : 0, lb = /lite/.test(b) ? 1 : 0;
-          if (la !== lb) return la - lb;
-          return ver(b) - ver(a);
-        });
-      } else if (provider === 'anthropic') {
-        const res = await fetchT('https://api.anthropic.com/v1/models?limit=100', { headers: ANTHROPIC_HEADERS(key) }, 20000);
-        if (!res.ok) throw await apiError(res);
-        const data = await res.json();
-        // API returns newest first; use Sonnet/Haiku (good vision, lower cost than Opus)
-        const all = (data.data || []).map(m => m.id);
-        names = [...all.filter(n => /sonnet/.test(n)), ...all.filter(n => /haiku/.test(n))];
-      } else if (provider === 'openai') {
-        const res = await fetchT('https://api.openai.com/v1/models', { headers: { Authorization: `Bearer ${key}` } }, 20000);
-        if (!res.ok) throw await apiError(res);
-        const data = await res.json();
-        names = (data.data || [])
-          .filter(m => /^gpt-/.test(m.id) && !/audio|realtime|transcribe|tts|image|search|instruct|embed|moderation|codex|chat-latest|preview|\d{4}-\d{2}-\d{2}/.test(m.id))
-          .sort((a, b) => ((/mini/.test(b.id) ? 1 : 0) - (/mini/.test(a.id) ? 1 : 0)) || (b.created - a.created))
-          .map(m => m.id);
-      }
-
-      if (custom) names.unshift(custom);
-      names = [...new Set(names)].slice(0, 3);
-      if (names.length === 0) throw new Error('這把 API Key 找不到可用的模型，請確認金鑰與帳戶額度');
-      return names;
-    }
-
-    // Send file + prompt to the chosen provider, return raw text reply
-    async function callModel(provider, model, key, b64, mime, prompt) {
-      const isPdf = mime === 'application/pdf';
-
-      if (provider === 'gemini') {
-        const res = await fetchT(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ inlineData: { mimeType: mime, data: b64 } }, { text: prompt }] }],
-            generationConfig: { responseMimeType: 'application/json' }
-          })
-        });
-        if (!res.ok) throw await apiError(res);
-        const data = await res.json();
-        return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-      }
-
-      if (provider === 'anthropic') {
-        const res = await fetchT('https://api.anthropic.com/v1/messages', {
-          method: 'POST',
-          headers: ANTHROPIC_HEADERS(key),
-          body: JSON.stringify({
-            model, max_tokens: 4096,
-            messages: [{ role: 'user', content: [
-              { type: isPdf ? 'document' : 'image', source: { type: 'base64', media_type: mime, data: b64 } },
-              { type: 'text', text: prompt }
-            ] }]
-          })
-        });
-        if (!res.ok) throw await apiError(res);
-        const data = await res.json();
-        return (data.content || []).filter(c => c.type === 'text').map(c => c.text).join('');
-      }
-
-      if (provider === 'openai') {
-        const filePart = isPdf
-          ? { type: 'file', file: { filename: 'schedule.pdf', file_data: `data:application/pdf;base64,${b64}` } }
-          : { type: 'image_url', image_url: { url: `data:${mime};base64,${b64}` } };
-        const res = await fetchT('https://api.openai.com/v1/chat/completions', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
-          body: JSON.stringify({ model, messages: [{ role: 'user', content: [filePart, { type: 'text', text: prompt }] }] })
-        });
-        if (!res.ok) throw await apiError(res);
-        const data = await res.json();
-        return data.choices?.[0]?.message?.content || '';
-      }
-      throw new Error('未知的 AI 服務');
-    }
-
-    function extractJsonArray(text) {
-      let t = (text || '').trim().replace(/^```json\s*/i, '').replace(/^```\s*/, '').replace(/\s*```$/, '').trim();
-      try { const v = JSON.parse(t); if (Array.isArray(v)) return v; } catch (e) {}
-      const i = t.indexOf('['), j = t.lastIndexOf(']');
-      if (i !== -1 && j > i) return JSON.parse(t.slice(i, j + 1));
-      throw new Error('AI 回傳的內容不是有效的行程列表');
-    }
-
-    async function parseSchedule() {
-      const provider = state.provider;
-      const key = loadKey(provider);
-
-      if (!key) {
-        showToast(`請先設定 ${PROVIDERS[provider].label} 的 API Key！`, 'warning');
+      if (!apiKey) {
+        showToast('請先輸入並儲存 Gemini API Key！', 'warning');
         openApiModal();
         return;
       }
-      if (!selectedFile) {
-        showToast('請先選擇要上傳的行事曆 PDF 或圖片！', 'warning');
+
+      if (!selectedFile && window.state.schedules.length === 0) {
+        showToast('請先上傳行事曆 PDF / 圖片，或點選載入範例檔！', 'warning');
         return;
       }
 
       const analyzeBtn = document.getElementById('analyzeBtn');
       const originalBtnText = analyzeBtn.innerHTML;
-      const setBtn = (msg) => { analyzeBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i><span>${msg}</span>`; };
       analyzeBtn.disabled = true;
-      setBtn('正在查詢可用模型...');
+      analyzeBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i><span>Gemini AI 解析中...</span>`;
 
       try {
-        const prompt = `你是一個專業的行程解析助手。請分析傳入的 Mac 行事曆 PDF 或圖片內容，提取出所有公開演出與音樂活動列表。
-請嚴格以 JSON 陣列格式回傳，不要加任何說明文字，格式範例：
+        let pdfTextContent = null;
+        if (selectedFile) {
+          pdfTextContent = await extractPdfText(selectedFile);
+        }
+
+        const promptText = `你是一個專業的音樂行程解析助手。請分析傳入的 Mac 行事曆 PDF/圖片或文字數據，萃取出所有公開演出與音樂活動列表。
+請嚴格輸出合法 JSON 陣列格式，不可含有 Markdown 說明標籤之外的多餘文字。
+
+JSON 範例：
 [
   {
     "date": "10/02",
@@ -619,44 +570,299 @@
   }
 ]`;
 
-        const b64 = await fileToBase64(selectedFile);
-        const mime = selectedFile.type || (selectedFile.name.toLowerCase().endsWith('.pdf') ? 'application/pdf' : 'image/png');
-        const models = await getUsableModels(provider, key);
+        let partsPayload = [];
 
-        let result = null, lastError = null;
-        for (const model of models) {
+        if (pdfTextContent) {
+          partsPayload.push({ text: `[PDF 本機擷取文字數據]:\n${pdfTextContent}` });
+        }
+
+        if (selectedFile) {
+          const base64Data = await fileToBase64(selectedFile);
+          const mimeType = selectedFile.type || (selectedFile.name.endsWith('.pdf') ? 'application/pdf' : 'image/png');
+          partsPayload.push({
+            inline_data: {
+              mime_type: mimeType,
+              data: base64Data
+            }
+          });
+        }
+
+        partsPayload.push({ text: promptText });
+
+        // Official active Gemini 3 models list with automatic failover fallback
+        const candidateModels = [
+          window.state.selectedModel,
+          'gemini-3.8-flash',
+          'gemini-3.7-flash',
+          'gemini-3.6-flash',
+          'gemini-3.5-flash',
+          'gemini-3.5-flash-lite',
+          'gemini-3-flash-preview'
+        ];
+        const uniqueModels = [...new Set(candidateModels)];
+
+        let successData = null;
+        let errorsLog = [];
+
+        for (const model of uniqueModels) {
           try {
-            setBtn(`${PROVIDERS[provider].label} 解析中（${model}）...`);
-            document.getElementById('currentModelBadge').innerText = model;
-            const text = await callModel(provider, model, key, b64, mime, prompt);
-            result = extractJsonArray(text);
-            break;
+            console.log(`正在發送 API 請求給 Gemini 模型: ${model}`);
+            const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+            
+            const response = await fetch(endpoint, {
+              method: 'POST',
+              headers: { 
+                'Content-Type': 'application/json',
+                'x-goog-api-key': apiKey
+              },
+              body: JSON.stringify({
+                contents: [{ parts: partsPayload }],
+                generationConfig: {
+                  responseMimeType: "application/json"
+                }
+              })
+            });
+
+            if (!response.ok) {
+              const errData = await response.json().catch(() => ({}));
+              const msg = errData.error?.message || `HTTP status ${response.status}`;
+              errorsLog.push(`[${model}]: ${msg}`);
+              
+              // If high demand spike or rate limit occurs, try next model immediately
+              continue;
+            }
+
+            const data = await response.json();
+            
+            // Handle generateContent or Interactions API text output
+            let replyText = data.candidates?.[0]?.content?.parts?.[0]?.text || data.output_text || '';
+            
+            let cleanJsonStr = replyText.trim()
+              .replace(/^```json\s*/i, '')
+              .replace(/^```\s*/, '')
+              .replace(/\s*```$/, '')
+              .trim();
+
+            let parsedObject = JSON.parse(cleanJsonStr);
+
+            if (Array.isArray(parsedObject)) {
+              successData = parsedObject;
+            } else if (typeof parsedObject === 'object' && parsedObject !== null) {
+              for (const key of Object.keys(parsedObject)) {
+                if (Array.isArray(parsedObject[key])) {
+                  successData = parsedObject[key];
+                  break;
+                }
+              }
+            }
+
+            if (successData) {
+              document.getElementById('currentModelBadge').innerText = `${model} (解析成功)`;
+              break;
+            }
           } catch (err) {
-            console.error(`模型 ${model} 發生錯誤:`, err);
-            lastError = err;
+            errorsLog.push(`[${model} Exception]: ${err.message}`);
           }
         }
 
-        if (result) {
-          showToast('AI 行程解析成功！🎉');
-          state.schedules = applyRules(result);
+        if (successData && Array.isArray(successData)) {
+          showToast('Gemini AI 行程解析成功！🎉');
+          // Safely apply rules using global window.applyRules
+          const mappedItems = successData.map(item => ({ ...item, use: true }));
+          window.state.schedules = window.applyRules(mappedItems);
           renderScheduleTable();
           generatePostText();
         } else {
-          showToast(`解析失敗：${lastError ? lastError.message : '無回應資料'}`, 'error');
+          document.getElementById('errorLogsContent').innerText = errorsLog.length > 0 ? errorsLog.join('\n\n') : 'Gemini AI 未能識別出有效的行程資料格式。';
+          document.getElementById('errorModal').classList.remove('hidden');
+          showToast('解析失敗，請點選彈出視窗查看具體 API 錯誤訊息。', 'error');
         }
+
       } catch (globalErr) {
-        console.error('解析過程發生異常:', globalErr);
-        showToast(`處理失敗：${globalErr.message}`, 'error');
+        console.error("解析過程發生異常:", globalErr);
+        showToast(`處理異常：${globalErr.message}`, 'error');
       } finally {
         analyzeBtn.disabled = false;
         analyzeBtn.innerHTML = originalBtnText;
-        updateApiKeyStatus();
       }
     }
 
+    // Alias parseSchedule to parseScheduleWithGemini for compatibility
+    window.parseSchedule = parseScheduleWithGemini;
+
     function renderRules() {
-      // Re-render rule cards if needed
+      const container = document.getElementById('rulesList');
+      if (!container) return;
+      container.innerHTML = '';
+
+      window.state.rules.forEach((rule, index) => {
+        const div = document.createElement('div');
+        div.className = 'p-3 bg-gray-50 rounded-xl border border-gray-200 space-y-2 text-xs relative';
+        div.innerHTML = `
+          <button onclick="removeRule(${index})" class="absolute top-2 right-2 text-gray-400 hover:text-rose-500 transition">
+            <i class="fa-solid fa-trash-can"></i>
+          </button>
+          <div class="font-bold text-amber-800">對照規則 ${index + 1}</div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-[10px] text-gray-400 block mb-0.5">關鍵簡寫</label>
+              <input type="text" value="${rule.key || ''}" onchange="updateRule(${index}, 'key', this.value)" class="w-full p-1.5 border rounded-lg bg-white text-gray-800 outline-none">
+            </div>
+            <div>
+              <label class="text-[10px] text-gray-400 block mb-0.5">固定時間</label>
+              <input type="text" value="${rule.time || ''}" onchange="updateRule(${index}, 'time', this.value)" class="w-full p-1.5 border rounded-lg bg-white text-gray-800 outline-none">
+            </div>
+            <div class="col-span-2">
+              <label class="text-[10px] text-gray-400 block mb-0.5">正式演出名稱/地點</label>
+              <input type="text" value="${rule.venue || ''}" onchange="updateRule(${index}, 'venue', this.value)" class="w-full p-1.5 border rounded-lg bg-white text-gray-800 outline-none">
+            </div>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function addNewRule() {
+      window.state.rules.push({ key: '', time: '21:00', venue: '' });
+      renderRules();
+    }
+
+    function removeRule(index) {
+      window.state.rules.splice(index, 1);
+      renderRules();
+    }
+
+    function updateRule(index, field, value) {
+      window.state.rules[index][field] = value;
+    }
+
+    function renderScheduleTable() {
+      const tbody = document.getElementById('scheduleTableBody');
+      const badge = document.getElementById('itemCountBadge');
+      if (!tbody) return;
+      
+      tbody.innerHTML = '';
+      badge.innerText = `${window.state.schedules.length} 個行程`;
+
+      if (window.state.schedules.length === 0) {
+        tbody.innerHTML = `
+          <tr id="emptyRowPlaceholder">
+            <td colspan="6" class="py-12 text-center text-gray-400">
+              <i class="fa-regular fa-calendar-xmark text-3xl mb-2 text-gray-300 block"></i>
+              尚未有解析行程資料，請上傳行程檔或點擊「載入 10 月範例資料」
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      window.state.schedules.forEach((item, idx) => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-amber-50/30 transition";
+        tr.innerHTML = `
+          <td class="p-2.5 text-center">
+            <input type="checkbox" ${item.use !== false ? 'checked' : ''} onchange="toggleItemUse(${idx}, this.checked)" class="rounded text-amber-600 focus:ring-amber-400">
+          </td>
+          <td class="p-2.5">
+            <input type="text" value="${item.date || ''}" onchange="updateScheduleItem(${idx}, 'date', this.value)" class="w-full p-1 border rounded bg-white font-mono text-xs">
+          </td>
+          <td class="p-2.5">
+            <input type="text" value="${item.day || ''}" onchange="updateScheduleItem(${idx}, 'day', this.value)" class="w-full p-1 border rounded bg-white text-xs">
+          </td>
+          <td class="p-2.5">
+            <input type="text" value="${item.time || ''}" onchange="updateScheduleItem(${idx}, 'time', this.value)" class="w-full p-1 border rounded bg-white font-mono text-xs">
+          </td>
+          <td class="p-2.5">
+            <input type="text" value="${item.title || item.venue || ''}" onchange="updateScheduleItem(${idx}, 'title', this.value)" class="w-full p-1 border rounded bg-white text-xs">
+          </td>
+          <td class="p-2.5 text-center">
+            <button onclick="deleteScheduleRow(${idx})" class="text-gray-400 hover:text-rose-500 transition">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function toggleItemUse(index, checked) {
+      window.state.schedules[index].use = checked;
+      generatePostText();
+    }
+
+    function updateScheduleItem(index, field, value) {
+      window.state.schedules[index][field] = value;
+      generatePostText();
+    }
+
+    function deleteScheduleRow(index) {
+      window.state.schedules.splice(index, 1);
+      renderScheduleTable();
+      generatePostText();
+    }
+
+    function addScheduleRow() {
+      window.state.schedules.push({ use: true, date: '10/01', day: '四', time: '20:00', title: '新行程地點', venue: '新行程地點' });
+      renderScheduleTable();
+      generatePostText();
+    }
+
+    function sortSchedule() {
+      window.state.schedules.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+      renderScheduleTable();
+      generatePostText();
+      showToast('行程已按日期完成排序！');
+    }
+
+    function generatePostText() {
+      const title = document.getElementById('postTitleInput').value.trim();
+      const footer = document.getElementById('postFooterInput').value.trim();
+      const previewEl = document.getElementById('postPreviewText');
+
+      const activeSchedules = window.state.schedules.filter(s => s.use !== false);
+
+      if (activeSchedules.length === 0) {
+        previewEl.innerText = `${title}\n\n(目前尚未勾選任何演出行程)\n\n${footer}`;
+        return;
+      }
+
+      let lines = [];
+      if (title) {
+        lines.push(title);
+        lines.push('');
+      }
+
+      activeSchedules.forEach(item => {
+        let dateStr = (item.date || '').trim();
+        let dayEn = formatDayToEn(item.day || '');
+        let timeStr = (item.time || '').trim();
+        
+        let titleStr = (item.title || '').trim();
+        let venueStr = (item.venue || '').trim();
+
+        let eventAndVenue = '';
+        if (titleStr && venueStr) {
+          if (titleStr === venueStr) {
+            eventAndVenue = titleStr;
+          } else {
+            eventAndVenue = `${titleStr} ${venueStr}`;
+          }
+        } else {
+          eventAndVenue = titleStr || venueStr;
+        }
+
+        // 單一行格式：日期 星期(英文縮寫) 時間(24小時制) 活動內容 地點
+        const singleLineItem = [dateStr, dayEn, timeStr, eventAndVenue].filter(Boolean).join(' ');
+        
+        lines.push(singleLineItem);
+        lines.push(''); // 空一列
+      });
+
+      if (footer) {
+        lines.push(footer);
+      }
+
+      previewEl.innerText = lines.join('\n');
     }
 
     function copyToClipboard() {
@@ -666,14 +872,19 @@
         return;
       }
 
-      navigator.clipboard.writeText(text).then(() => {
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      document.body.appendChild(textArea);
+      textArea.select();
+      try {
+        document.execCommand('copy');
         showToast('已成功複製 IG 貼文至剪貼簿！ 🎉');
-      }).catch(err => {
+      } catch (err) {
         showToast('複製失敗，請手動全選複製。', 'error');
-      });
+      }
+      document.body.removeChild(textArea);
     }
 
-    // Custom Toast Notification System
     function showToast(message, type = 'success') {
       const existingToast = document.getElementById('customToast');
       if (existingToast) existingToast.remove();
