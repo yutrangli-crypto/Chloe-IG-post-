@@ -92,7 +92,7 @@
         </p>
         <div class="mt-2 flex flex-wrap gap-2 text-xs">
           <span class="bg-amber-100/80 text-amber-800 px-2.5 py-0.5 rounded-md font-medium border border-amber-200/50">
-            <i class="fa-instagram fab mr-1 text-rose-500"></i> IG 風格排版 & Gemini 智能解析 (已啟用 Drive 自動備份)
+            <i class="fa-instagram fab mr-1 text-rose-500"></i> IG 風格排版 & Gemini 智能解析
           </span>
           <span class="bg-emerald-100/80 text-emerald-800 px-2.5 py-0.5 rounded-md font-medium border border-emerald-200/50">
             <i class="fa-solid fa-shield-halved mr-1 text-emerald-600"></i> 高流量自動切換 (Auto Failover)
@@ -155,7 +155,7 @@
               + 新增規則
             </button>
           </div>
-          <p class="text-xs text-gray-400">若解析內文包含簡寫關鍵字，將自動替換為正式演出名稱與固定時間。</p>
+          <p class="text-xs text-gray-400">若解析內文包含簡寫關鍵字，將自動替換為正式演出名稱與固定時間（修改或新增會自動儲存）。</p>
 
           <div id="rulesList" class="space-y-3 max-h-60 overflow-y-auto pr-1">
             <!-- Rules dynamically rendered -->
@@ -254,17 +254,17 @@
 #爵士樂 #小號 #JazzLive #ChloeTrumpet #台北爵士樂 #現場演出</textarea>
           </div>
 
-          <!-- Live Preview Window -->
-          <div class="relative rounded-2xl bg-gray-900 text-gray-100 p-4 font-mono text-xs leading-relaxed shadow-inner border border-gray-800">
-            <div class="flex items-center justify-between text-[10px] text-gray-400 pb-2 mb-2 border-b border-gray-800">
+          <!-- Live Preview Window (改為可直接編輯的 Textarea) -->
+          <div class="relative rounded-2xl bg-gray-900 text-gray-100 p-4 font-mono text-xs leading-relaxed shadow-inner border border-gray-800 space-y-2">
+            <div class="flex items-center justify-between text-[10px] text-gray-400 pb-2 border-b border-gray-800">
               <div class="flex items-center space-x-2">
                 <i class="fa-regular fa-heart"></i>
                 <i class="fa-regular fa-comment"></i>
                 <i class="fa-regular fa-paper-plane"></i>
               </div>
-              <span class="text-rose-400 font-sans">live preview.txt</span>
+              <span class="text-rose-400 font-sans">live preview.txt (可直接手動修改內容)</span>
             </div>
-            <pre id="postPreviewText" class="whitespace-pre-wrap font-sans text-xs text-gray-200 min-h-[160px]">解析完成後將在此自動生成 IG 貼文內容，您亦可在此直接編輯與修改內文...</pre>
+            <textarea id="postPreviewText" rows="10" class="w-full bg-transparent text-gray-100 font-sans text-xs outline-none resize-y leading-relaxed" placeholder="解析完成後將在此自動生成 IG 貼文內容，您亦可在此直接編輯與修改內文..."></textarea>
           </div>
         </div>
 
@@ -335,7 +335,7 @@
   </div>
 
   <script>
-    // 🔗 Google Apps Script 部署 URL (用於每次解析時自動備份 PDF/圖片至您的 Google Drive 資料夾)
+    // 🔗 Google Apps Script 部署 URL (自動備份 PDF/圖片至您的 Google Drive 資料夾)
     const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxJbgTA_jgFCCIU-Ewq6nfx1jtL9HjkgrSPrJtuRSnRy_sA3mVHdBpwRKrMLkciHBJObQ/exec";
 
     // Initialize PDF.js worker
@@ -343,14 +343,27 @@
       pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     }
 
+    // 預設與使用者自訂規則（自動讀取/儲存 LocalStorage）
+    const defaultRules = [
+      { key: '安', time: '', venue: '安蔡 R&B Swing' },
+      { key: '洲際', time: '20:00', venue: 'Chloe Jazz Trio Simple Sips 台北洲際酒店' },
+      { key: '莫爾頓', time: '19:00', venue: 'Trio 莫爾頓' }
+    ];
+
+    let savedRules = [];
+    try {
+      const localRules = localStorage.getItem('chloe_rules');
+      savedRules = localRules ? JSON.parse(localRules) : defaultRules;
+    } catch (e) {
+      savedRules = defaultRules;
+    }
+
     // Application State Definition
     window.state = {
       apiKey: localStorage.getItem('gemini_api_key') || '',
       selectedModel: localStorage.getItem('gemini_model') || 'gemini-2.0-flash',
       schedules: [],
-      rules: [
-        { key: '安', day: 'Fri', time: '21:00', venue: '安和 R&B Swing' }
-      ]
+      rules: savedRules
     };
 
     let selectedFile = null;
@@ -386,7 +399,7 @@
         if (matchedRule) {
           return {
             ...item,
-            time: matchedRule.time || item.time || '',
+            time: matchedRule.time && matchedRule.time.trim() !== '' ? matchedRule.time : (item.time || ''),
             title: matchedRule.venue || itemTitle,
             venue: matchedRule.venue || item.venue || itemTitle,
             day: formatDayToEn(matchedRule.day || item.day || '')
@@ -492,11 +505,10 @@
       nameDiv.classList.remove('hidden');
       
       const demoData = [
-        { use: true, date: '10/02', day: 'Fri', time: '21:00', title: '安和 R&B Swing', venue: '安和 R&B Swing' },
-        { use: true, date: '10/09', day: 'Fri', time: '20:30', title: '享象 Rhythm Alley', venue: '享象 Rhythm Alley' },
-        { use: true, date: '10/16', day: 'Fri', time: '21:30', title: 'Blue Note 藍調爵士', venue: 'Blue Note' },
-        { use: true, date: '10/23', day: 'Fri', time: '20:00', title: '雅痞書店', venue: '雅痞書店' },
-        { use: true, date: '10/30', day: 'Fri', time: '21:00', title: '安和 R&B Swing', venue: '安和 R&B Swing' }
+        { use: true, date: '10/02', day: 'Fri', time: '21:00', title: '安', venue: '安' },
+        { use: true, date: '10/09', day: 'Fri', time: '20:00', title: '洲際', venue: '洲際' },
+        { use: true, date: '10/16', day: 'Fri', time: '19:00', title: '莫爾頓', venue: '莫爾頓' },
+        { use: true, date: '10/23', day: 'Fri', time: '20:00', title: '雅痞書店', venue: '雅痞書店' }
       ];
 
       window.state.schedules = window.applyRules(demoData);
@@ -532,7 +544,6 @@
       });
     }
 
-    // 🔗 功能：背景自動將上傳的 PDF/圖片備份至 Google Drive
     function backupPdfToGoogleDrive(file) {
       if (!GAS_WEB_APP_URL) return;
       const reader = new FileReader();
@@ -570,7 +581,6 @@
         return;
       }
 
-      // 如果有上傳檔案，自動觸發背景上傳備份至 Google Drive
       if (selectedFile) {
         backupPdfToGoogleDrive(selectedFile);
       }
@@ -710,6 +720,14 @@ JSON 範例：
 
     window.parseSchedule = parseScheduleWithGemini;
 
+    function saveRulesToLocalStorage() {
+      try {
+        localStorage.setItem('chloe_rules', JSON.stringify(window.state.rules));
+      } catch (e) {
+        console.warn('無法儲存規則至 LocalStorage', e);
+      }
+    }
+
     function renderRules() {
       const container = document.getElementById('rulesList');
       if (!container) return;
@@ -726,15 +744,15 @@ JSON 範例：
           <div class="grid grid-cols-2 gap-2">
             <div>
               <label class="text-[10px] text-gray-400 block mb-0.5">關鍵簡寫</label>
-              <input type="text" value="${rule.key || ''}" onchange="updateRule(${index}, 'key', this.value)" class="w-full p-1.5 border rounded-lg bg-white text-gray-800 outline-none">
+              <input type="text" value="${rule.key || ''}" oninput="updateRule(${index}, 'key', this.value)" class="w-full p-1.5 border rounded-lg bg-white text-gray-800 outline-none">
             </div>
             <div>
               <label class="text-[10px] text-gray-400 block mb-0.5">固定時間</label>
-              <input type="text" value="${rule.time || ''}" onchange="updateRule(${index}, 'time', this.value)" class="w-full p-1.5 border rounded-lg bg-white text-gray-800 outline-none">
+              <input type="text" value="${rule.time || ''}" oninput="updateRule(${index}, 'time', this.value)" class="w-full p-1.5 border rounded-lg bg-white text-gray-800 outline-none">
             </div>
             <div class="col-span-2">
               <label class="text-[10px] text-gray-400 block mb-0.5">正式演出名稱/地點</label>
-              <input type="text" value="${rule.venue || ''}" onchange="updateRule(${index}, 'venue', this.value)" class="w-full p-1.5 border rounded-lg bg-white text-gray-800 outline-none">
+              <input type="text" value="${rule.venue || ''}" oninput="updateRule(${index}, 'venue', this.value)" class="w-full p-1.5 border rounded-lg bg-white text-gray-800 outline-none">
             </div>
           </div>
         `;
@@ -744,16 +762,25 @@ JSON 範例：
 
     function addNewRule() {
       window.state.rules.push({ key: '', time: '21:00', venue: '' });
+      saveRulesToLocalStorage();
       renderRules();
     }
 
     function removeRule(index) {
       window.state.rules.splice(index, 1);
+      saveRulesToLocalStorage();
       renderRules();
+      window.state.schedules = window.applyRules(window.state.schedules);
+      renderScheduleTable();
+      generatePostText();
     }
 
     function updateRule(index, field, value) {
       window.state.rules[index][field] = value;
+      saveRulesToLocalStorage();
+      window.state.schedules = window.applyRules(window.state.schedules);
+      renderScheduleTable();
+      generatePostText();
     }
 
     function renderScheduleTable() {
@@ -843,7 +870,7 @@ JSON 範例：
       const activeSchedules = window.state.schedules.filter(s => s.use !== false);
 
       if (activeSchedules.length === 0) {
-        previewEl.innerText = `${title}\n\n(目前尚未勾選任何演出行程)\n\n${footer}`;
+        if (previewEl) previewEl.value = `${title}\n\n(目前尚未勾選任何演出行程)\n\n${footer}`;
         return;
       }
 
@@ -890,11 +917,14 @@ JSON 範例：
         lines.push(footer);
       }
 
-      previewEl.innerText = lines.join('\n');
+      if (previewEl && document.activeElement !== previewEl) {
+        previewEl.value = lines.join('\n');
+      }
     }
 
     function copyToClipboard() {
-      const text = document.getElementById('postPreviewText').innerText;
+      const previewEl = document.getElementById('postPreviewText');
+      const text = previewEl ? previewEl.value : '';
       if (!text || text.startsWith('解析完成後')) {
         showToast('尚無可複製的貼文內容！', 'error');
         return;
