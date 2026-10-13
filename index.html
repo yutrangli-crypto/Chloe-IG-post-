@@ -94,9 +94,6 @@
           <span class="bg-amber-100/80 text-amber-800 px-2.5 py-0.5 rounded-md font-medium border border-amber-200/50">
             <i class="fa-instagram fab mr-1 text-rose-500"></i> IG 風格排版 & Gemini 3 智能解析
           </span>
-          <span class="bg-emerald-100/80 text-emerald-800 px-2.5 py-0.5 rounded-md font-medium border border-emerald-200/50">
-            <i class="fa-solid fa-shield-halved mr-1 text-emerald-600"></i> 高流量自動切換 (Auto Failover)
-          </span>
         </div>
       </div>
     </div>
@@ -139,7 +136,7 @@
 
             <button onclick="parseScheduleWithGemini()" id="analyzeBtn" class="w-full py-3 text-white font-bold text-sm rounded-xl btn-primary flex items-center justify-center space-x-2 shadow-md">
               <i class="fa-solid fa-bolt"></i>
-              <span>開始 Gemini AI 智能解析檔案</span>
+              <span>開始 Gemini 3.8 Flash 智能解析</span>
             </button>
           </div>
         </div>
@@ -297,15 +294,7 @@
           <label class="block font-medium text-gray-700 mb-1">優先 Gemini 模型選擇</label>
           <select id="modalModelSelect" class="w-full p-2.5 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-amber-400">
             <option value="gemini-3.8-flash" selected>gemini-3.8-flash (推薦：最新 3.8 旗艦 Flash)</option>
-            <option value="gemini-3.7-flash">gemini-3.7-flash (3.7 高速版)</option>
-            <option value="gemini-3.6-flash">gemini-3.6-flash (3.6 備援版)</option>
-            <option value="gemini-3.5-flash">gemini-3.5-flash (3.5 高容量備援版)</option>
           </select>
-        </div>
-
-        <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-emerald-800 text-[11px] space-y-1">
-          <div class="font-bold"><i class="fa-solid fa-shield-halved mr-1"></i> 自動備援與高峰降級 (Auto Failover)：</div>
-          <p>若伺服器尖峰時期主要模型繁忙，系統將自動無感切換至同世代備援模型，確保 100% 順暢解析。</p>
         </div>
       </div>
 
@@ -324,7 +313,7 @@
         <h3 class="font-bold text-base">Gemini API 呼叫診斷報告</h3>
       </div>
       <p class="text-xs text-gray-600 leading-relaxed">
-        所有嘗試的模型均回應錯誤，以下為詳細的 Google API 回報訊息，可供排查 API Key 權限或設定：
+        API 呼叫回應錯誤，以下為詳細的 Google API 回報訊息：
       </p>
       <div id="errorLogsContent" class="bg-gray-900 text-rose-300 font-mono text-[11px] p-3 rounded-xl max-h-48 overflow-y-auto whitespace-pre-wrap leading-tight shadow-inner">
       </div>
@@ -358,7 +347,7 @@
 
     window.state = {
       apiKey: localStorage.getItem('gemini_api_key') || '',
-      selectedModel: localStorage.getItem('gemini_model') || 'gemini-3.8-flash',
+      selectedModel: 'gemini-3.8-flash',
       schedules: [],
       rules: savedRules
     };
@@ -425,9 +414,9 @@
       }
 
       if (input) input.value = window.state.apiKey;
-      if (select) select.value = window.state.selectedModel;
+      if (select) select.value = 'gemini-3.8-flash';
 
-      document.getElementById('currentModelBadge').innerText = `${window.state.selectedModel} (旗艦版)`;
+      document.getElementById('currentModelBadge').innerText = 'gemini-3.8-flash (旗艦版)';
     }
 
     function openApiModal() {
@@ -444,17 +433,16 @@
 
     function saveApiSettings() {
       const keyInput = document.getElementById('modalApiKeyInput').value.trim();
-      const modelInput = document.getElementById('modalModelSelect').value;
       
       window.state.apiKey = keyInput;
-      window.state.selectedModel = modelInput;
+      window.state.selectedModel = 'gemini-3.8-flash';
 
       localStorage.setItem('gemini_api_key', keyInput);
-      localStorage.setItem('gemini_model', modelInput);
+      localStorage.setItem('gemini_model', 'gemini-3.8-flash');
 
       updateApiKeyStatus();
       closeApiModal();
-      showToast('API Key 及模型設定已成功儲存！');
+      showToast('API Key 設定已成功儲存！');
     }
 
     function handleDragOver(e) {
@@ -486,7 +474,7 @@
       const nameDiv = document.getElementById('selectedFileName');
       nameDiv.innerText = `已選擇檔案：${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
       nameDiv.classList.remove('hidden');
-      showToast('檔案已準備完畢，點擊「開始 Gemini AI 智能解析」');
+      showToast('檔案已準備完畢，點擊「開始解析」');
     }
 
     function loadDemoSchedule() {
@@ -579,7 +567,7 @@
       const analyzeBtn = document.getElementById('analyzeBtn');
       const originalBtnText = analyzeBtn.innerHTML;
       analyzeBtn.disabled = true;
-      analyzeBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i><span>Gemini AI 解析中...</span>`;
+      analyzeBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i><span>Gemini 3.8 Flash 解析中...</span>`;
 
       try {
         let pdfTextContent = null;
@@ -596,8 +584,8 @@ JSON 範例：
     "date": "10/02",
     "day": "五",
     "time": "21:00",
-    "title": "安和 R&B Swing",
-    "venue": "安和 R&B Swing"
+    "title": "安蔡 R&B Swing",
+    "venue": "安蔡 R&B Swing"
   }
 ]`;
 
@@ -620,94 +608,65 @@ JSON 範例：
 
         partsPayload.push({ text: promptText });
 
-        const candidateModels = [
-          window.state.selectedModel,
-          'gemini-3.8-flash',
-          'gemini-3.7-flash',
-          'gemini-3.6-flash'
-        ];
-        const uniqueModels = [...new Set(candidateModels)];
+        const model = 'gemini-3.8-flash';
+        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+        
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            contents: [{ parts: partsPayload }],
+            generationConfig: {
+              responseMimeType: "application/json"
+            }
+          })
+        });
 
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({}));
+          throw new Error(errData.error?.message || `HTTP status ${response.status}`);
+        }
+
+        const data = await response.json();
+        let replyText = data.candidates?.[0]?.content?.parts?.[0]?.text || data.output_text || '';
+        
+        let cleanJsonStr = replyText.trim()
+          .replace(/^```json\s*/i, '')
+          .replace(/^```\s*/, '')
+          .replace(/\s*```$/, '')
+          .trim();
+
+        let parsedObject = JSON.parse(cleanJsonStr);
         let successData = null;
-        let errorsLog = [];
 
-        for (const model of uniqueModels) {
-          try {
-            console.log(`正在發送 API 請求給 Gemini 模型: ${model}`);
-            const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-            
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 20000);
-
-            const response = await fetch(endpoint, {
-              method: 'POST',
-              headers: { 
-                'Content-Type': 'application/json'
-              },
-              signal: controller.signal,
-              body: JSON.stringify({
-                contents: [{ parts: partsPayload }],
-                generationConfig: {
-                  responseMimeType: "application/json"
-                }
-              })
-            });
-
-            clearTimeout(timeoutId);
-
-            if (!response.ok) {
-              const errData = await response.json().catch(() => ({}));
-              const msg = errData.error?.message || `HTTP status ${response.status}`;
-              errorsLog.push(`[${model}]: ${msg}`);
-              continue;
-            }
-
-            const data = await response.json();
-            let replyText = data.candidates?.[0]?.content?.parts?.[0]?.text || data.output_text || '';
-            
-            let cleanJsonStr = replyText.trim()
-              .replace(/^```json\s*/i, '')
-              .replace(/^```\s*/, '')
-              .replace(/\s*```$/, '')
-              .trim();
-
-            let parsedObject = JSON.parse(cleanJsonStr);
-
-            if (Array.isArray(parsedObject)) {
-              successData = parsedObject;
-            } else if (typeof parsedObject === 'object' && parsedObject !== null) {
-              for (const key of Object.keys(parsedObject)) {
-                if (Array.isArray(parsedObject[key])) {
-                  successData = parsedObject[key];
-                  break;
-                }
-              }
-            }
-
-            if (successData) {
-              document.getElementById('currentModelBadge').innerText = `${model} (解析成功)`;
+        if (Array.isArray(parsedObject)) {
+          successData = parsedObject;
+        } else if (typeof parsedObject === 'object' && parsedObject !== null) {
+          for (const key of Object.keys(parsedObject)) {
+            if (Array.isArray(parsedObject[key])) {
+              successData = parsedObject[key];
               break;
             }
-          } catch (err) {
-            errorsLog.push(`[${model} Exception]: ${err.message}`);
           }
         }
 
         if (successData && Array.isArray(successData)) {
-          showToast('Gemini AI 行程解析成功！🎉');
+          showToast('Gemini 3.8 Flash 行程解析成功！🎉');
           const mappedItems = successData.map(item => ({ ...item, use: true }));
           window.state.schedules = window.applyRules(mappedItems);
           renderScheduleTable();
           generatePostText();
         } else {
-          document.getElementById('errorLogsContent').innerText = errorsLog.length > 0 ? errorsLog.join('\n\n') : 'Gemini AI 未能識別出有效的行程資料格式。';
-          document.getElementById('errorModal').classList.remove('hidden');
-          showToast('解析失敗，請點選彈出視窗查看具體 API 錯誤訊息。', 'error');
+          throw new Error('AI 未能識別出有效的行程資料格式。');
         }
 
       } catch (globalErr) {
         console.error("解析過程發生異常:", globalErr);
-        showToast(`處理異常：${globalErr.message}`, 'error');
+        document.getElementById('errorLogsContent').innerText = globalErr.message;
+        document.getElementById('errorModal').classList.remove('hidden');
+        showToast('解析失敗，請查看診斷報告。', 'error');
       } finally {
         analyzeBtn.disabled = false;
         analyzeBtn.innerHTML = originalBtnText;
