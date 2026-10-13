@@ -73,7 +73,7 @@
         
         <div class="flex items-center space-x-1.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs px-3 py-1.5 rounded-full">
           <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span id="currentModelBadge">gemini-2.0-flash (多模型備援)</span>
+          <span id="currentModelBadge">gemini-2.0-flash (極速版)</span>
         </div>
       </div>
     </div>
@@ -254,7 +254,7 @@
 #爵士樂 #小號 #JazzLive #ChloeTrumpet #台北爵士樂 #現場演出</textarea>
           </div>
 
-          <!-- Live Preview Window (改為可直接編輯的 Textarea) -->
+          <!-- Live Preview Window (可手動修改內容) -->
           <div class="relative rounded-2xl bg-gray-900 text-gray-100 p-4 font-mono text-xs leading-relaxed shadow-inner border border-gray-800 space-y-2">
             <div class="flex items-center justify-between text-[10px] text-gray-400 pb-2 border-b border-gray-800">
               <div class="flex items-center space-x-2">
@@ -296,15 +296,14 @@
         <div>
           <label class="block font-medium text-gray-700 mb-1">優先 Gemini 模型選擇</label>
           <select id="modalModelSelect" class="w-full p-2.5 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-amber-400">
-            <option value="gemini-2.0-flash" selected>gemini-2.0-flash (推薦：穩定高速版)</option>
-            <option value="gemini-3.8-flash">gemini-3.8-flash (最新旗艦 Flash)</option>
-            <option value="gemini-3.7-flash">gemini-3.7-flash (3.7 高速版)</option>
+            <option value="gemini-2.0-flash" selected>gemini-2.0-flash (推薦：穩定極速版)</option>
+            <option value="gemini-1.5-flash">gemini-1.5-flash (標準版)</option>
           </select>
         </div>
 
         <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-emerald-800 text-[11px] space-y-1">
-          <div class="font-bold"><i class="fa-solid fa-shield-halved mr-1"></i> 自動備援與高峰降級 (Auto Fallover)：</div>
-          <p>若伺服器尖峰時期主要模型繁忙，系統將自動無感切換至同世代備援模型，確保 100% 順暢解析。</p>
+          <div class="font-bold"><i class="fa-solid fa-shield-halved mr-1"></i> 自動備援機制 (Auto Failover)：</div>
+          <p>若遇到伺服器繁忙，系統將自動無感切換至備援模型，確保順暢解析。</p>
         </div>
       </div>
 
@@ -335,15 +334,12 @@
   </div>
 
   <script>
-    // 🔗 Google Apps Script 部署 URL (自動備份 PDF/圖片至您的 Google Drive 資料夾)
     const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxJbgTA_jgFCCIU-Ewq6nfx1jtL9HjkgrSPrJtuRSnRy_sA3mVHdBpwRKrMLkciHBJObQ/exec";
 
-    // Initialize PDF.js worker
     if (window.pdfjsLib) {
       pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     }
 
-    // 預設與使用者自訂規則（自動讀取/儲存 LocalStorage）
     const defaultRules = [
       { key: '安', time: '', venue: '安蔡 R&B Swing' },
       { key: '洲際', time: '20:00', venue: 'Chloe Jazz Trio Simple Sips 台北洲際酒店' },
@@ -358,7 +354,6 @@
       savedRules = defaultRules;
     }
 
-    // Application State Definition
     window.state = {
       apiKey: localStorage.getItem('gemini_api_key') || '',
       selectedModel: localStorage.getItem('gemini_model') || 'gemini-2.0-flash',
@@ -368,9 +363,6 @@
 
     let selectedFile = null;
 
-    /**
-     * Helper: Convert Chinese or full weekday names to English 3-letter abbreviation
-     */
     function formatDayToEn(dayStr) {
       if (!dayStr) return '';
       const str = String(dayStr).trim().toUpperCase();
@@ -384,9 +376,6 @@
       return dayStr;
     }
 
-    /**
-     * Globally defined applyRules function
-     */
     function applyRules(parsedItems) {
       if (!Array.isArray(parsedItems)) return [];
       const rules = (window.state && window.state.rules) ? window.state.rules : [];
@@ -544,27 +533,28 @@
       });
     }
 
-    function backupPdfToGoogleDrive(file) {
+    // ⚡ 關鍵修正：非同步背景發送至 Google Drive，完全不上鎖、不安裝微等待
+    function backupPdfToGoogleDriveAsync(file) {
       if (!GAS_WEB_APP_URL) return;
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const base64Data = e.target.result.split(',')[1];
-        const payload = {
-          fileName: file.name,
-          mimeType: file.type || 'application/pdf',
-          fileData: base64Data
-        };
+      setTimeout(() => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const base64Data = e.target.result.split(',')[1];
+          const payload = {
+            fileName: file.name,
+            mimeType: file.type || 'application/pdf',
+            fileData: base64Data
+          };
 
-        fetch(GAS_WEB_APP_URL, {
-          method: "POST",
-          mode: "no-cors",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        })
-        .then(() => console.log("檔案已成功自動備份至指定的 Google Drive 資料夾"))
-        .catch(err => console.error("Google Drive 備份失敗:", err));
-      };
-      reader.readAsDataURL(file);
+          fetch(GAS_WEB_APP_URL, {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          }).catch(err => console.error("Google Drive 背景備份跳過:", err));
+        };
+        reader.readAsDataURL(file);
+      }, 10);
     }
 
     async function parseScheduleWithGemini() {
@@ -581,8 +571,9 @@
         return;
       }
 
+      // 觸發背景非同步備份
       if (selectedFile) {
-        backupPdfToGoogleDrive(selectedFile);
+        backupPdfToGoogleDriveAsync(selectedFile);
       }
 
       const analyzeBtn = document.getElementById('analyzeBtn');
@@ -629,11 +620,11 @@ JSON 範例：
 
         partsPayload.push({ text: promptText });
 
+        // ⚡ 關鍵修正：優先使用最快、最穩定的 gemini-2.0-flash
         const candidateModels = [
-          window.state.selectedModel,
           'gemini-2.0-flash',
-          'gemini-3.8-flash',
-          'gemini-3.7-flash'
+          window.state.selectedModel,
+          'gemini-1.5-flash'
         ];
         const uniqueModels = [...new Set(candidateModels)];
 
@@ -645,12 +636,16 @@ JSON 範例：
             console.log(`正在發送 API 請求給 Gemini 模型: ${model}`);
             const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
             
+            // 加上 20 秒逾時機制，避免卡死
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 20000);
+
             const response = await fetch(endpoint, {
               method: 'POST',
               headers: { 
-                'Content-Type': 'application/json',
-                'x-goog-api-key': apiKey
+                'Content-Type': 'application/json'
               },
+              signal: controller.signal,
               body: JSON.stringify({
                 contents: [{ parts: partsPayload }],
                 generationConfig: {
@@ -658,6 +653,8 @@ JSON 範例：
                 }
               })
             });
+
+            clearTimeout(timeoutId);
 
             if (!response.ok) {
               const errData = await response.json().catch(() => ({}));
