@@ -98,8 +98,8 @@
       </div>
     </div>
 
-    <!-- Main Grid Container -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <!-- Main Grid Container: 左右雙欄配置 -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
       <!-- Left Column: Input and Rules (5 Cols) -->
       <div class="lg:col-span-5 space-y-6">
@@ -141,7 +141,7 @@
           </div>
         </div>
 
-        <!-- Step 2 Card: Rule Replacements -->
+        <!-- Step 2 Card: Rule Replacements (高度拉長) -->
         <div class="bg-white rounded-2xl border border-amber-100 p-5 custom-shadow space-y-4">
           <div class="flex items-center justify-between">
             <div class="flex items-center space-x-2">
@@ -154,7 +154,8 @@
           </div>
           <p class="text-xs text-gray-400">若解析內文包含簡寫關鍵字，將自動替換為正式演出名稱與固定時間（修改或新增會自動儲存）。</p>
 
-          <div id="rulesList" class="space-y-3 max-h-60 overflow-y-auto pr-1">
+          <!-- 規則對照表框框高度擴大 (max-h-96) -->
+          <div id="rulesList" class="space-y-3 max-h-96 overflow-y-auto pr-1">
             <!-- Rules dynamically rendered -->
           </div>
         </div>
@@ -183,9 +184,9 @@
           </div>
 
           <!-- Schedule Table Container -->
-          <div class="overflow-x-auto border border-gray-100 rounded-xl">
+          <div class="overflow-x-auto border border-gray-100 rounded-xl max-h-80 overflow-y-auto">
             <table class="w-full text-left text-xs">
-              <thead class="bg-amber-50/50 text-gray-500 font-semibold border-b border-gray-100">
+              <thead class="bg-amber-50/50 text-gray-500 font-semibold border-b border-gray-100 sticky top-0">
                 <tr>
                   <th class="p-2.5 w-10 text-center">採用</th>
                   <th class="p-2.5 w-20">日期</th>
@@ -251,7 +252,7 @@
 #爵士樂 #小號 #JazzLive #ChloeTrumpet #台北爵士樂 #現場演出</textarea>
           </div>
 
-          <!-- Live Preview Window (可直接編輯) -->
+          <!-- Live Preview Window (高度拉長至 rows="18"，避免頻繁拉捲軸) -->
           <div class="relative rounded-2xl bg-gray-900 text-gray-100 p-4 font-mono text-xs leading-relaxed shadow-inner border border-gray-800 space-y-2">
             <div class="flex items-center justify-between text-[10px] text-gray-400 pb-2 border-b border-gray-800">
               <div class="flex items-center space-x-2">
@@ -261,7 +262,7 @@
               </div>
               <span class="text-rose-400 font-sans">live preview.txt (可直接手動修改內容)</span>
             </div>
-            <textarea id="postPreviewText" rows="10" class="w-full bg-transparent text-gray-100 font-sans text-xs outline-none resize-y leading-relaxed" placeholder="解析完成後將在此自動生成 IG 貼文內容，您亦可在此直接編輯與修改內文..."></textarea>
+            <textarea id="postPreviewText" rows="18" class="w-full bg-transparent text-gray-100 font-sans text-xs outline-none resize-y leading-relaxed" placeholder="解析完成後將在此自動生成 IG 貼文內容，您亦可在此直接編輯與修改內文..."></textarea>
           </div>
         </div>
 
@@ -819,117 +820,4 @@ JSON 範例：
     function generatePostText() {
       const title = document.getElementById('postTitleInput').value.trim();
       const footer = document.getElementById('postFooterInput').value.trim();
-      const dateFormat = document.getElementById('dateFormatSelect').value;
-      const previewEl = document.getElementById('postPreviewText');
-
-      const activeSchedules = window.state.schedules.filter(s => s.use !== false);
-
-      if (activeSchedules.length === 0) {
-        if (previewEl) previewEl.value = `${title}\n\n(目前尚未勾選任何演出行程)\n\n${footer}`;
-        return;
-      }
-
-      let lines = [];
-      if (title) {
-        lines.push(title);
-        lines.push('');
-      }
-
-      activeSchedules.forEach(item => {
-        let dateStr = (item.date || '').trim();
-        let rawDay = formatDayToEn(item.day || '');
-        let timeStr = (item.time || '').trim();
-        
-        let titleStr = (item.title || '').trim();
-        let venueStr = (item.venue || '').trim();
-
-        let eventAndVenue = '';
-        if (titleStr && venueStr) {
-          if (titleStr === venueStr) {
-            eventAndVenue = titleStr;
-          } else {
-            eventAndVenue = `${titleStr} ${venueStr}`;
-          }
-        } else {
-          eventAndVenue = titleStr || venueStr;
-        }
-
-        let dayDisplay = '';
-        if (dateFormat === 'full') {
-          const zhMap = { 'Mon': '星期一', 'Tue': '星期二', 'Wed': '星期三', 'Thu': '星期四', 'Fri': '星期五', 'Sat': '星期六', 'Sun': '星期日' };
-          dayDisplay = zhMap[rawDay] || `星期${rawDay}`;
-        } else if (dateFormat === 'short') {
-          dayDisplay = rawDay;
-        }
-
-        const singleLineItem = [dateStr, dayDisplay, timeStr, eventAndVenue].filter(Boolean).join(' ');
-        
-        lines.push(singleLineItem);
-        lines.push('');
-      });
-
-      if (footer) {
-        lines.push(footer);
-      }
-
-      if (previewEl && document.activeElement !== previewEl) {
-        previewEl.value = lines.join('\n');
-      }
-    }
-
-    function copyToClipboard() {
-      const previewEl = document.getElementById('postPreviewText');
-      const text = previewEl ? previewEl.value : '';
-      if (!text || text.startsWith('解析完成後')) {
-        showToast('尚無可複製的貼文內容！', 'error');
-        return;
-      }
-
-      const textArea = document.createElement("textarea");
-      textArea.value = text;
-      document.body.appendChild(textArea);
-      textArea.select();
-      try {
-        document.execCommand('copy');
-        showToast('已成功複製 IG 貼文至剪貼簿！ 🎉');
-      } catch (err) {
-        showToast('複製失敗，請手動全選複製。', 'error');
-      }
-      document.body.removeChild(textArea);
-    }
-
-    function showToast(message, type = 'success') {
-      const existingToast = document.getElementById('customToast');
-      if (existingToast) existingToast.remove();
-
-      const toast = document.createElement('div');
-      toast.id = 'customToast';
-      
-      let bgClass = 'bg-gray-900 text-white';
-      let icon = '<i class="fa-solid fa-circle-check text-emerald-400"></i>';
-
-      if (type === 'error') {
-        bgClass = 'bg-rose-600 text-white';
-        icon = '<i class="fa-solid fa-circle-xmark"></i>';
-      } else if (type === 'warning') {
-        bgClass = 'bg-amber-600 text-white';
-        icon = '<i class="fa-solid fa-triangle-exclamation"></i>';
-      }
-
-      toast.className = `fixed bottom-6 right-6 ${bgClass} text-xs px-4 py-3 rounded-xl shadow-2xl flex items-center space-x-2 z-50 transition-all duration-300 transform translate-y-2 opacity-0`;
-      toast.innerHTML = `${icon}<span>${message}</span>`;
-
-      document.body.appendChild(toast);
-
-      setTimeout(() => {
-        toast.classList.remove('translate-y-2', 'opacity-0');
-      }, 10);
-
-      setTimeout(() => {
-        toast.classList.add('translate-y-2', 'opacity-0');
-        setTimeout(() => toast.remove(), 300);
-      }, 3500);
-    }
-  </script>
-</body>
-</html>
+      const dateFormat = document.
