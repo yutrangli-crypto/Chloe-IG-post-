@@ -73,7 +73,7 @@
         
         <div class="flex items-center space-x-1.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs px-3 py-1.5 rounded-full">
           <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span id="currentModelBadge">gemini-3.8-flash (旗艦版)</span>
+          <span id="currentModelBadge">gemini-2.0-flash (推薦版)</span>
         </div>
       </div>
     </div>
@@ -92,7 +92,7 @@
         </p>
         <div class="mt-2 flex flex-wrap gap-2 text-xs">
           <span class="bg-amber-100/80 text-amber-800 px-2.5 py-0.5 rounded-md font-medium border border-amber-200/50">
-            <i class="fa-instagram fab mr-1 text-rose-500"></i> IG 風格排版 & Gemini 3 智能解析
+            <i class="fa-instagram fab mr-1 text-rose-500"></i> IG 風格排版 & Gemini 智能解析
           </span>
         </div>
       </div>
@@ -136,7 +136,7 @@
 
             <button onclick="parseScheduleWithGemini()" id="analyzeBtn" class="w-full py-3 text-white font-bold text-sm rounded-xl btn-primary flex items-center justify-center space-x-2 shadow-md">
               <i class="fa-solid fa-bolt"></i>
-              <span>開始 Gemini 3.8 Flash 智能解析</span>
+              <span>開始 Gemini AI 智能解析檔案</span>
             </button>
           </div>
         </div>
@@ -252,7 +252,7 @@
 #爵士樂 #小號 #JazzLive #ChloeTrumpet #台北爵士樂 #現場演出</textarea>
           </div>
 
-          <!-- Live Preview Window (高度拉長至 rows="18"，避免頻繁拉捲軸) -->
+          <!-- Live Preview Window (高度拉長至 rows="18") -->
           <div class="relative rounded-2xl bg-gray-900 text-gray-100 p-4 font-mono text-xs leading-relaxed shadow-inner border border-gray-800 space-y-2">
             <div class="flex items-center justify-between text-[10px] text-gray-400 pb-2 border-b border-gray-800">
               <div class="flex items-center space-x-2">
@@ -294,8 +294,14 @@
         <div>
           <label class="block font-medium text-gray-700 mb-1">優先 Gemini 模型選擇</label>
           <select id="modalModelSelect" class="w-full p-2.5 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-amber-400">
-            <option value="gemini-3.8-flash" selected>gemini-3.8-flash (推薦：最新 3.8 旗艦 Flash)</option>
+            <option value="gemini-2.0-flash" selected>gemini-2.0-flash (推薦：穩定極速版)</option>
+            <option value="gemini-1.5-flash">gemini-1.5-flash (標準版)</option>
           </select>
+        </div>
+
+        <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-emerald-800 text-[11px] space-y-1">
+          <div class="font-bold"><i class="fa-solid fa-shield-halved mr-1"></i> 自動備援機制 (Auto Failover)：</div>
+          <p>若遇到伺服器繁忙，系統將自動無感切換至備援模型，確保順暢解析。</p>
         </div>
       </div>
 
@@ -314,7 +320,7 @@
         <h3 class="font-bold text-base">Gemini API 呼叫診斷報告</h3>
       </div>
       <p class="text-xs text-gray-600 leading-relaxed">
-        API 呼叫回應錯誤，以下為詳細的 Google API 回報訊息：
+        所有嘗試的模型均回應錯誤，以下為詳細的 Google API 回報訊息：
       </p>
       <div id="errorLogsContent" class="bg-gray-900 text-rose-300 font-mono text-[11px] p-3 rounded-xl max-h-48 overflow-y-auto whitespace-pre-wrap leading-tight shadow-inner">
       </div>
@@ -348,7 +354,7 @@
 
     window.state = {
       apiKey: localStorage.getItem('gemini_api_key') || '',
-      selectedModel: 'gemini-3.8-flash',
+      selectedModel: localStorage.getItem('gemini_model') || 'gemini-2.0-flash',
       schedules: [],
       rules: savedRules
     };
@@ -415,9 +421,9 @@
       }
 
       if (input) input.value = window.state.apiKey;
-      if (select) select.value = 'gemini-3.8-flash';
+      if (select) select.value = window.state.selectedModel;
 
-      document.getElementById('currentModelBadge').innerText = 'gemini-3.8-flash (旗艦版)';
+      document.getElementById('currentModelBadge').innerText = `${window.state.selectedModel} (推薦版)`;
     }
 
     function openApiModal() {
@@ -434,16 +440,17 @@
 
     function saveApiSettings() {
       const keyInput = document.getElementById('modalApiKeyInput').value.trim();
+      const modelInput = document.getElementById('modalModelSelect').value;
       
       window.state.apiKey = keyInput;
-      window.state.selectedModel = 'gemini-3.8-flash';
+      window.state.selectedModel = modelInput;
 
       localStorage.setItem('gemini_api_key', keyInput);
-      localStorage.setItem('gemini_model', 'gemini-3.8-flash');
+      localStorage.setItem('gemini_model', modelInput);
 
       updateApiKeyStatus();
       closeApiModal();
-      showToast('API Key 設定已成功儲存！');
+      showToast('API Key 及模型設定已成功儲存！');
     }
 
     function handleDragOver(e) {
@@ -475,7 +482,7 @@
       const nameDiv = document.getElementById('selectedFileName');
       nameDiv.innerText = `已選擇檔案：${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
       nameDiv.classList.remove('hidden');
-      showToast('檔案已準備完畢，點擊「開始解析」');
+      showToast('檔案已準備完畢，點擊「開始 Gemini AI 智能解析」');
     }
 
     function loadDemoSchedule() {
@@ -568,7 +575,7 @@
       const analyzeBtn = document.getElementById('analyzeBtn');
       const originalBtnText = analyzeBtn.innerHTML;
       analyzeBtn.disabled = true;
-      analyzeBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i><span>Gemini 3.8 Flash 解析中...</span>`;
+      analyzeBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i><span>Gemini AI 解析中...</span>`;
 
       try {
         let pdfTextContent = null;
@@ -609,65 +616,93 @@ JSON 範例：
 
         partsPayload.push({ text: promptText });
 
-        const model = 'gemini-3.8-flash';
-        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-        
-        const response = await fetch(endpoint, {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            contents: [{ parts: partsPayload }],
-            generationConfig: {
-              responseMimeType: "application/json"
-            }
-          })
-        });
+        const candidateModels = [
+          window.state.selectedModel,
+          'gemini-2.0-flash',
+          'gemini-1.5-flash'
+        ];
+        const uniqueModels = [...new Set(candidateModels)];
 
-        if (!response.ok) {
-          const errData = await response.json().catch(() => ({}));
-          throw new Error(errData.error?.message || `HTTP status ${response.status}`);
-        }
-
-        const data = await response.json();
-        let replyText = data.candidates?.[0]?.content?.parts?.[0]?.text || data.output_text || '';
-        
-        let cleanJsonStr = replyText.trim()
-          .replace(/^```json\s*/i, '')
-          .replace(/^```\s*/, '')
-          .replace(/\s*```$/, '')
-          .trim();
-
-        let parsedObject = JSON.parse(cleanJsonStr);
         let successData = null;
+        let errorsLog = [];
 
-        if (Array.isArray(parsedObject)) {
-          successData = parsedObject;
-        } else if (typeof parsedObject === 'object' && parsedObject !== null) {
-          for (const key of Object.keys(parsedObject)) {
-            if (Array.isArray(parsedObject[key])) {
-              successData = parsedObject[key];
+        for (const model of uniqueModels) {
+          try {
+            console.log(`正在發送 API 請求給 Gemini 模型: ${model}`);
+            const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+            
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 20000);
+
+            const response = await fetch(endpoint, {
+              method: 'POST',
+              headers: { 
+                'Content-Type': 'application/json'
+              },
+              signal: controller.signal,
+              body: JSON.stringify({
+                contents: [{ parts: partsPayload }],
+                generationConfig: {
+                  responseMimeType: "application/json"
+                }
+              })
+            });
+
+            clearTimeout(timeoutId);
+
+            if (!response.ok) {
+              const errData = await response.json().catch(() => ({}));
+              const msg = errData.error?.message || `HTTP status ${response.status}`;
+              errorsLog.push(`[${model}]: ${msg}`);
+              continue;
+            }
+
+            const data = await response.json();
+            let replyText = data.candidates?.[0]?.content?.parts?.[0]?.text || data.output_text || '';
+            
+            let cleanJsonStr = replyText.trim()
+              .replace(/^```json\s*/i, '')
+              .replace(/^```\s*/, '')
+              .replace(/\s*```$/, '')
+              .trim();
+
+            let parsedObject = JSON.parse(cleanJsonStr);
+
+            if (Array.isArray(parsedObject)) {
+              successData = parsedObject;
+            } else if (typeof parsedObject === 'object' && parsedObject !== null) {
+              for (const key of Object.keys(parsedObject)) {
+                if (Array.isArray(parsedObject[key])) {
+                  successData = parsedObject[key];
+                  break;
+                }
+              }
+            }
+
+            if (successData) {
+              document.getElementById('currentModelBadge').innerText = `${model} (解析成功)`;
               break;
             }
+          } catch (err) {
+            errorsLog.push(`[${model} Exception]: ${err.message}`);
           }
         }
 
         if (successData && Array.isArray(successData)) {
-          showToast('Gemini 3.8 Flash 行程解析成功！🎉');
+          showToast('Gemini AI 行程解析成功！🎉');
           const mappedItems = successData.map(item => ({ ...item, use: true }));
           window.state.schedules = window.applyRules(mappedItems);
           renderScheduleTable();
           generatePostText();
         } else {
-          throw new Error('AI 未能識別出有效的行程資料格式。');
+          document.getElementById('errorLogsContent').innerText = errorsLog.length > 0 ? errorsLog.join('\n\n') : 'Gemini AI 未能識別出有效的行程資料格式。';
+          document.getElementById('errorModal').classList.remove('hidden');
+          showToast('解析失敗，請點選彈出視窗查看具體 API 錯誤訊息。', 'error');
         }
 
       } catch (globalErr) {
         console.error("解析過程發生異常:", globalErr);
-        document.getElementById('errorLogsContent').innerText = globalErr.message;
-        document.getElementById('errorModal').classList.remove('hidden');
-        showToast('解析失敗，請查看診斷報告。', 'error');
+        showToast(`處理異常：${globalErr.message}`, 'error');
       } finally {
         analyzeBtn.disabled = false;
         analyzeBtn.innerHTML = originalBtnText;
@@ -820,4 +855,117 @@ JSON 範例：
     function generatePostText() {
       const title = document.getElementById('postTitleInput').value.trim();
       const footer = document.getElementById('postFooterInput').value.trim();
-      const dateFormat = document.
+      const dateFormat = document.getElementById('dateFormatSelect').value;
+      const previewEl = document.getElementById('postPreviewText');
+
+      const activeSchedules = window.state.schedules.filter(s => s.use !== false);
+
+      if (activeSchedules.length === 0) {
+        if (previewEl) previewEl.value = `${title}\n\n(目前尚未勾選任何演出行程)\n\n${footer}`;
+        return;
+      }
+
+      let lines = [];
+      if (title) {
+        lines.push(title);
+        lines.push('');
+      }
+
+      activeSchedules.forEach(item => {
+        let dateStr = (item.date || '').trim();
+        let rawDay = formatDayToEn(item.day || '');
+        let timeStr = (item.time || '').trim();
+        
+        let titleStr = (item.title || '').trim();
+        let venueStr = (item.venue || '').trim();
+
+        let eventAndVenue = '';
+        if (titleStr && venueStr) {
+          if (titleStr === venueStr) {
+            eventAndVenue = titleStr;
+          } else {
+            eventAndVenue = `${titleStr} ${venueStr}`;
+          }
+        } else {
+          eventAndVenue = titleStr || venueStr;
+        }
+
+        let dayDisplay = '';
+        if (dateFormat === 'full') {
+          const zhMap = { 'Mon': '星期一', 'Tue': '星期二', 'Wed': '星期三', 'Thu': '星期四', 'Fri': '星期五', 'Sat': '星期六', 'Sun': '星期日' };
+          dayDisplay = zhMap[rawDay] || `星期${rawDay}`;
+        } else if (dateFormat === 'short') {
+          dayDisplay = rawDay;
+        }
+
+        const singleLineItem = [dateStr, dayDisplay, timeStr, eventAndVenue].filter(Boolean).join(' ');
+        
+        lines.push(singleLineItem);
+        lines.push('');
+      });
+
+      if (footer) {
+        lines.push(footer);
+      }
+
+      if (previewEl && document.activeElement !== previewEl) {
+        previewEl.value = lines.join('\n');
+      }
+    }
+
+    function copyToClipboard() {
+      const previewEl = document.getElementById('postPreviewText');
+      const text = previewEl ? previewEl.value : '';
+      if (!text || text.startsWith('解析完成後')) {
+        showToast('尚無可複製的貼文內容！', 'error');
+        return;
+      }
+
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      document.body.appendChild(textArea);
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        showToast('已成功複製 IG 貼文至剪貼簿！ 🎉');
+      } catch (err) {
+        showToast('複製失敗，請手動全選複製。', 'error');
+      }
+      document.body.removeChild(textArea);
+    }
+
+    function showToast(message, type = 'success') {
+      const existingToast = document.getElementById('customToast');
+      if (existingToast) existingToast.remove();
+
+      const toast = document.createElement('div');
+      toast.id = 'customToast';
+      
+      let bgClass = 'bg-gray-900 text-white';
+      let icon = '<i class="fa-solid fa-circle-check text-emerald-400"></i>';
+
+      if (type === 'error') {
+        bgClass = 'bg-rose-600 text-white';
+        icon = '<i class="fa-solid fa-circle-xmark"></i>';
+      } else if (type === 'warning') {
+        bgClass = 'bg-amber-600 text-white';
+        icon = '<i class="fa-solid fa-triangle-exclamation"></i>';
+      }
+
+      toast.className = `fixed bottom-6 right-6 ${bgClass} text-xs px-4 py-3 rounded-xl shadow-2xl flex items-center space-x-2 z-50 transition-all duration-300 transform translate-y-2 opacity-0`;
+      toast.innerHTML = `${icon}<span>${message}</span>`;
+
+      document.body.appendChild(toast);
+
+      setTimeout(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      }, 10);
+
+      setTimeout(() => {
+        toast.classList.add('translate-y-2', 'opacity-0');
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+  </script>
+</body>
+</html>
